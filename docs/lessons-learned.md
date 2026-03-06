@@ -154,3 +154,15 @@
   - 让页面入口只负责把队列和当前曲目写入 store，再由 `PlayerDock` 根据当前曲目统一解析播放地址和歌词预览
 - Prevention:
   - 后续接 howler、scrobble 和歌词高亮时，优先围绕“当前播放曲目”集中处理副作用，而不是分散到各个页面按钮
+
+
+## `Howl` 实例应只在曲目源变化时重建
+
+- Context:
+  - 播放器需要同时响应当前曲目、播放状态、音量和进度等多个状态
+- Problem:
+  - 如果把 `isPlaying`、`volume` 这类高频状态也放进创建 `Howl` 的 effect 依赖里，会导致音频实例被反复销毁重建，产生断播或重头播放
+- Resolution:
+  - 创建 `Howl` 的 effect 只依赖 `track.id` 和 `sourceUrl`；播放/暂停、音量、进度同步分别用独立 effect 处理
+- Prevention:
+  - 后续扩展 seek、倍速、淡入淡出等能力时，继续保持“实例生命周期”和“运行时控制”分离

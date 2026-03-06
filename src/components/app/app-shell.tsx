@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import ThemeToggle from '#/components/ThemeToggle'
+import PlayerEngine from '#/features/player/components/player-engine'
 import PlayerDock from './player-dock'
 
 const defaultSearch = {
@@ -110,6 +111,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
         </div>
       </div>
+
+      <PlayerEngine />
 
       <div className="fixed inset-x-0 bottom-0 z-50">
         <PlayerDock />

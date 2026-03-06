@@ -32,6 +32,7 @@
     - `play-track-button.tsx`：播放按钮组件，支持播放地址解析
     - `player-track.ts`：队列构建工具
     - `player-dock.tsx`：显示当前曲目和歌词预览
+  - 完成 Phase 3 播放器核心第二批实现：`player-engine.tsx` 已接入 howler，支持真实音频播放、播放/暂停、切歌、音量同步和进度展示
 - In progress:
   - Phase 3 播放器核心：接入 Howler 实现真实播放
 - Next:
