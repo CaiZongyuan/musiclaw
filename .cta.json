@@ -1,0 +1,22 @@
+{
+  "projectName": "music-claw",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "bun",
+  "includeExamples": true,
+  "tailwind": true,
+  "addOnOptions": {},
+  "envVarValues": {},
+  "git": true,
+  "routerOnly": false,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": [
+    "eslint",
+    "cloudflare",
+    "paraglide",
+    "shadcn",
+    "better-auth",
+    "tanstack-query"
+  ]
+}
