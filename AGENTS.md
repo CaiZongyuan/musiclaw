@@ -126,6 +126,47 @@ bunx @better-auth/cli secret
 
 Set `BETTER_AUTH_SECRET` in `.env.local`.
 
+## Commit Message Convention
+
+```
+<type>(<scope>): <subject>
+
+<body>
+```
+
+**Type**: feat | fix | docs | style | refactor | perf | test | build | ci | chore
+
+**Subject**: Imperative mood, 72 chars max, no period
+
+**Body**: What changed and why, wrap at 72 chars. No AI/agent attribution.
+
+```
+feat(auth): add email/password authentication
+
+Implement Better Auth with email/password provider.
+
+- Add auth server instance in src/lib/auth.ts
+- Add auth client in src/lib/auth-client.ts
+- Create API routes at /api/auth/*
+```
+
 ## Deployment
 
 Deployed to **Cloudflare Workers** via `wrangler`. The `wrangler.jsonc` config uses `@tanstack/react-start/server-entry` as the entrypoint with Node.js compatibility.
+
+## Collaboration Docs
+
+`docs/` is the shared coordination channel for this project. Before starting or continuing implementation work, read the relevant docs and keep them updated when decisions change.
+
+Recommended read order:
+- `docs/yesplaymusic-web-rewrite-analysis.md` - migration analysis and dependency decisions
+- `docs/yesplaymusic-web-rewrite-plan.md` - phased implementation plan
+- `docs/progress.md` - current status, in-progress work, blockers, next steps
+- `docs/lessons-learned.md` - pitfalls, constraints, and reusable lessons
+- `docs/developer-collaboration.md` - documentation workflow and collaboration rules
+
+When working in this repo:
+- Use `docs/` to communicate plans, progress, blockers, and important implementation notes to other developers
+- Update `docs/progress.md` after meaningful milestones or when blocked
+- Update `docs/lessons-learned.md` when discovering a reusable fix, pitfall, or constraint
+- If implementation changes the migration direction, also update the plan or analysis docs
