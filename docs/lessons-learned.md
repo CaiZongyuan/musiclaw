@@ -65,3 +65,69 @@
   - 对多字段对象 selector 使用 `useShallow`，或拆成多个独立 selector
 - Prevention:
   - 以后凡是 `zustand` 返回对象或数组，都优先使用 `useShallow` 或稳定引用策略
+
+## 路由 loader 先通过 server functions 取外部 API
+
+- Context:
+  - TanStack Start 的 route loader 既可能在服务端首次渲染执行，也可能在客户端导航时执行
+- Problem:
+  - 如果直接在 loader 里用相对地址请求外部 API，SSR 下容易遇到 base URL 不完整的问题
+- Resolution:
+  - 第一批只读接口通过 `createServerFn` 在服务端请求外部 Netease API，再由 loader 复用 query options
+- Prevention:
+  - 后续迁移更多接口时，优先沿用“server function + query options + loader”这一条链路
+
+## 为当前项目单独维护 `vitest.config.ts`
+
+- Context:
+  - 默认 `vite.config.ts` 启用了 Cloudflare Vite 插件
+- Problem:
+  - 直接运行 `vitest` 会被拉入 Workers/Miniflare 运行时，导致本地单测不稳定
+- Resolution:
+  - 新增独立的 `vitest.config.ts`，仅保留 `tsconfigPaths` 和 `jsdom` 测试环境
+- Prevention:
+  - 后续纯单元测试优先使用 `bunx vitest run --config vitest.config.ts`
+
+## 新增测试统一放在根目录 `test/`
+
+- Context:
+  - 当前仓库已存在根目录 `test/` 作为测试入口
+- Problem:
+  - 把测试紧贴源码文件放在 `src/` 下会偏离当前仓库约定
+- Resolution:
+  - 本项目新增测试统一放到根目录 `test/` 下，并按模块分子目录组织
+- Prevention:
+  - 后续新增单测时优先使用 `test/`，例如 `test/stores/*`、`test/lib/*`
+
+## 服务端环境变量优先从 `process.env` 读取
+
+- Context:
+  - TanStack Start 的 server function 和 loader 在服务端执行时会读取后端 API 地址
+- Problem:
+  - `NETEASE_API_URL` 这类未加 `VITE_` 前缀的变量，不能稳定通过 `import.meta.env` 读取
+- Resolution:
+  - 服务端请求桥优先读取 `process.env.NETEASE_API_URL`，再回退到 `VITE_NETEASE_API_URL`
+- Prevention:
+  - 以后凡是仅服务端使用的环境变量，都优先从 `process.env` 读取
+
+## 前端开发端口不要和独立后端 API 端口相同
+
+- Context:
+  - 当前项目默认前端开发端口是 `3000`
+- Problem:
+  - 如果 `NETEASE_API_URL` 也指向 `http://127.0.0.1:3000`，SSR 请求会打回前端自身，而不是独立 API 服务
+- Resolution:
+  - 独立 Netease API 服务请使用其他端口，例如 `3001` 或 `10754`
+- Prevention:
+  - 真机测试前先确认前端和 API 不是同一个地址
+
+## 搜索参数驱动的 TanStack Router loader 必须声明 `loaderDeps`
+
+- Context:
+  - `/search` 页面通过查询参数 `?q=` 和 `?type=` 驱动 loader 请求
+- Problem:
+  - 如果 route 只在 `loader` 里读取 `search`，但没有声明 `loaderDeps`，同一路径下仅搜索参数变化时 loader 可能不会重新执行，页面会继续显示旧的或空的 loader 数据
+- Resolution:
+  - 为这类 route 显式声明 `loaderDeps: ({ search }) => ...`，并在 `loader` 中统一使用 `deps`
+- Prevention:
+  - 以后凡是依赖 query string 拉数据的 TanStack Router 页面，都先补 `loaderDeps`，避免把 search 参数漏出缓存键
