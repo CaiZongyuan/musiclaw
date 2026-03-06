@@ -36,6 +36,7 @@
 
 ```md
 ## YYYY-MM-DD
+
 - Done:
 - In progress:
 - Next:
@@ -52,6 +53,7 @@
 
 ```md
 ## 标题
+
 - Context:
 - Problem:
 - Resolution:
