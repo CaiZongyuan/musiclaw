@@ -175,3 +175,4 @@ When working in this repo:
 - Update `docs/progress.md` after meaningful milestones or when blocked
 - Update `docs/lessons-learned.md` when discovering a reusable fix, pitfall, or constraint
 - If implementation changes the migration direction, also update the plan or analysis docs
+- After each meaningful stage is completed, explicitly tell the user what to test in the web app on a real device/browser, including the exact page/entry point and the expected behavior; wait for the user's verification feedback before treating that stage as ready to submit

@@ -11,9 +11,15 @@ import { Link } from '@tanstack/react-router'
 import ThemeToggle from '#/components/ThemeToggle'
 import PlayerDock from './player-dock'
 
+const defaultSearch = {
+  q: '',
+  type: 1018,
+  page: 1,
+} as const
+
 const navigationItems = [
   { to: '/', label: 'Home', icon: House },
-  { to: '/search', label: 'Search', icon: Search },
+  { to: '/search', label: 'Search', icon: Search, search: defaultSearch },
   { to: '/library', label: 'Library', icon: Library },
   { to: '/settings', label: 'Settings', icon: Settings },
 ] as const
@@ -41,10 +47,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <nav className="flex flex-col gap-2">
-            {navigationItems.map(({ to, label, icon: Icon }) => (
+            {navigationItems.map(({ to, label, icon: Icon, ...linkProps }) => (
               <Link
                 key={to}
                 to={to}
+                {...linkProps}
                 activeProps={{ className: 'app-nav-link app-nav-link--active' }}
                 className="app-nav-link"
               >
@@ -79,7 +86,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
               </div>
 
               <div className="flex items-center gap-3">
-                <Link to="/search" className="app-chip hidden sm:inline-flex">
+                <Link
+                  to="/search"
+                  search={defaultSearch}
+                  className="app-chip hidden sm:inline-flex"
+                >
                   <Search size={16} />
                   <span>Search</span>
                 </Link>

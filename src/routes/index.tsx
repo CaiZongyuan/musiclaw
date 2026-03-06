@@ -7,6 +7,12 @@ import type {
 } from '#/features/music/api/types'
 import { homePageQueryOptions } from '#/features/home/api/home-api'
 
+const defaultSearch = {
+  q: '',
+  type: 1018,
+  page: 1,
+} as const
+
 export const Route = createFileRoute('/')({
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(homePageQueryOptions(8)),
@@ -35,7 +41,7 @@ function HomeRoute() {
         description="首页已接入第一批只读接口：推荐歌单、榜单、新专辑和歌手榜。后续会继续补歌单/专辑/艺人详情与搜索结果。"
         actions={
           <>
-            <Link to="/search" className="app-chip">
+            <Link to="/search" search={defaultSearch} className="app-chip">
               Search page
             </Link>
             <Link to="/library" className="app-chip">

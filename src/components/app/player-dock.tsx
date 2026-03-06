@@ -1,6 +1,15 @@
+import { useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Pause, Play, SkipBack, SkipForward, Volume2 } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
+import {
+  fetchTrackLyrics,
+  getTrackLyrics,
+  getTrackSource,
+} from '#/features/track/api/track-api'
 import { usePlayerStore } from '#/features/player/stores/player-store'
+
+type TrackLyricsData = Awaited<ReturnType<typeof fetchTrackLyrics>> | null
 
 export default function PlayerDock() {
   const {
@@ -11,6 +20,7 @@ export default function PlayerDock() {
     skipToNext,
     skipToPrevious,
     volume,
+    setTrackSource,
     setVolume,
   } = usePlayerStore(
     useShallow((state) => ({
@@ -21,12 +31,47 @@ export default function PlayerDock() {
       skipToNext: state.skipToNext,
       skipToPrevious: state.skipToPrevious,
       volume: state.volume,
+      setTrackSource: state.setTrackSource,
       setVolume: state.setVolume,
     })),
   )
 
   const currentTrack =
     queue.find((track) => track.id === currentTrackId) ?? null
+
+  const { data: lyricData } = useQuery<TrackLyricsData>({
+    queryKey: ['track', 'lyrics-preview', currentTrackId ?? 0],
+    queryFn: async () => {
+      if (currentTrackId === null) {
+        return null
+      }
+
+      return getTrackLyrics({
+        data: {
+          id: currentTrackId,
+        },
+      }) as Promise<TrackLyricsData>
+    },
+    enabled: currentTrackId !== null,
+  })
+
+  useEffect(() => {
+    if (!currentTrack || currentTrack.sourceUrl) {
+      return
+    }
+
+    void getTrackSource({
+      data: {
+        id: currentTrack.id,
+      },
+    }).then((source) => {
+      if (source.url) {
+        setTrackSource(currentTrack.id, source.url)
+      }
+    })
+  }, [currentTrack, setTrackSource])
+
+  const lyricPreview = lyricData?.parsed.lyric.slice(0, 3) ?? []
 
   return (
     <div className="player-dock border-t border-[var(--line)] bg-[color-mix(in_oklab,var(--surface-strong)_86%,black_14%)] px-4 py-3 backdrop-blur-xl">
@@ -45,10 +90,29 @@ export default function PlayerDock() {
               </p>
               <p className="truncate text-xs text-[var(--sea-ink-soft)]">
                 {currentTrack?.artists.join(' / ') ??
-                  '接下来会接入 howler 和真实播放链路'}
+                  '现在已经能从歌单、专辑、艺人和搜索结果入队'}
               </p>
+              {currentTrack ? (
+                <p className="mt-1 truncate text-xs text-[var(--sea-ink-soft)]">
+                  {currentTrack.sourceUrl
+                    ? '播放地址已解析，下一步接 howler 实播'
+                    : '正在解析当前歌曲的播放地址'}
+                </p>
+              ) : null}
             </div>
           </div>
+          {lyricPreview.length ? (
+            <div className="mt-3 space-y-1 pl-[3.75rem]">
+              {lyricPreview.map((line) => (
+                <p
+                  key={`${line.time}-${line.content}`}
+                  className="m-0 truncate text-xs text-[var(--sea-ink-soft)]"
+                >
+                  {line.content}
+                </p>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="flex items-center justify-center gap-2">

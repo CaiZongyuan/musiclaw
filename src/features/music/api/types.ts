@@ -52,7 +52,7 @@ export interface NeteaseTrack {
   dt?: number
   fee?: number
   privilege?: NeteaseTrackPrivilege
-  noCopyrightRcmd?: unknown
+  noCopyrightRcmd?: Record<string, {}> | null
   playable?: boolean
   reason?: string
 }
@@ -100,6 +100,41 @@ export interface NeteaseArtistDetailResponse {
   }
   hotSongs: NeteaseTrack[]
   more?: boolean
+}
+
+export interface NeteaseTrackDetailResponse {
+  code: number
+  songs: NeteaseTrack[]
+  privileges?: NeteaseTrackPrivilege[]
+}
+
+export interface NeteaseTrackSourceItem {
+  id: number
+  url?: string | null
+  br?: number
+  size?: number
+  type?: string
+  level?: string
+  time?: number
+  fee?: number
+}
+
+export interface NeteaseTrackSourceResponse {
+  code: number
+  data: NeteaseTrackSourceItem[]
+}
+
+export interface NeteaseLyricBlock {
+  lyric?: string
+}
+
+export interface NeteaseLyricResponse {
+  code: number
+  lrc?: NeteaseLyricBlock
+  tlyric?: NeteaseLyricBlock
+  romalrc?: NeteaseLyricBlock
+  lyricUser?: Record<string, {}>
+  transUser?: Record<string, {}>
 }
 
 export interface NeteaseSearchResponse {

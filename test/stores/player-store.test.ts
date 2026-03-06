@@ -16,6 +16,29 @@ afterEach(() => {
 })
 
 describe('player store', () => {
+  test('loadQueueAndPlay primes queue and marks playback active', () => {
+    usePlayerStore.getState().loadQueueAndPlay(queue, 2)
+
+    expect(usePlayerStore.getState().queue).toEqual(queue)
+    expect(usePlayerStore.getState().currentTrackId).toBe(2)
+    expect(usePlayerStore.getState().durationSeconds).toBe(2)
+    expect(usePlayerStore.getState().isPlaying).toBe(true)
+  })
+
+  test('setTrackSource updates the queued track source url', () => {
+    usePlayerStore.setState({
+      ...defaultPlayerSnapshot,
+      queue,
+      currentTrackId: 1,
+    })
+
+    usePlayerStore.getState().setTrackSource(1, 'https://example.com/song.mp3')
+
+    expect(usePlayerStore.getState().queue[0]?.sourceUrl).toBe(
+      'https://example.com/song.mp3',
+    )
+  })
+
   test('skipToNext advances to the next track', () => {
     usePlayerStore.setState({
       ...defaultPlayerSnapshot,

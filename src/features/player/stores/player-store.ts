@@ -27,6 +27,7 @@ export interface PlayerStoreSnapshot {
 }
 
 interface PlayerStoreActions {
+  loadQueueAndPlay: (queue: PlayerTrack[], currentTrackId?: number | null) => void
   pause: () => void
   play: () => void
   playTrack: (trackId: number) => void
@@ -36,6 +37,7 @@ interface PlayerStoreActions {
   setQueue: (queue: PlayerTrack[], currentTrackId?: number | null) => void
   setRepeatMode: (repeatMode: RepeatMode) => void
   setShuffleEnabled: (shuffleEnabled: boolean) => void
+  setTrackSource: (trackId: number, sourceUrl: string) => void
   setVolume: (volume: number) => void
   skipToNext: () => void
   skipToPrevious: () => void
@@ -70,10 +72,27 @@ function getCurrentTrackIndex(
   return queue.findIndex((track) => track.id === currentTrackId)
 }
 
+function resolveDurationSeconds(
+  queue: PlayerTrack[],
+  currentTrackId: number | null,
+) {
+  return (
+    (queue.find((track) => track.id === currentTrackId)?.durationMs ?? 0) / 1000
+  )
+}
+
 export const usePlayerStore = create<PlayerStoreState>()(
   persist(
     (set) => ({
       ...defaultPlayerSnapshot,
+      loadQueueAndPlay: (queue, currentTrackId = queue[0]?.id ?? null) =>
+        set({
+          queue,
+          currentTrackId,
+          isPlaying: currentTrackId !== null,
+          progressSeconds: 0,
+          durationSeconds: resolveDurationSeconds(queue, currentTrackId),
+        }),
       pause: () => set({ isPlaying: false }),
       play: () => set({ isPlaying: true }),
       playTrack: (trackId) =>
@@ -81,9 +100,7 @@ export const usePlayerStore = create<PlayerStoreState>()(
           currentTrackId: trackId,
           isPlaying: true,
           progressSeconds: 0,
-          durationSeconds:
-            (state.queue.find((track) => track.id === trackId)?.durationMs ??
-              0) / 1000,
+          durationSeconds: resolveDurationSeconds(state.queue, trackId),
         })),
       resetPlayer: () => set(defaultPlayerSnapshot),
       setDurationSeconds: (durationSeconds) => set({ durationSeconds }),
@@ -97,6 +114,12 @@ export const usePlayerStore = create<PlayerStoreState>()(
         }),
       setRepeatMode: (repeatMode) => set({ repeatMode }),
       setShuffleEnabled: (shuffleEnabled) => set({ shuffleEnabled }),
+      setTrackSource: (trackId, sourceUrl) =>
+        set((state) => ({
+          queue: state.queue.map((track) =>
+            track.id === trackId ? { ...track, sourceUrl } : track,
+          ),
+        })),
       setVolume: (volume) => set({ volume: clampVolume(volume) }),
       skipToNext: () =>
         set((state) => {

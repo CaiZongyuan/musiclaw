@@ -8,12 +8,12 @@
   - 输出了依赖替换分析文档
   - 输出了 Web 重写开发计划
   - 建立了 `docs/` 协作机制并写入 `AGENTS.md`
-  - 完成 Phase 0 基础设施第一批实现：请求层、浏览器存储工具、Dexie db 骨架、Zustand store 骨架
+  - 完成 Phase 0 基础设施：请求层、浏览器存储工具、Dexie db 骨架、Zustand store 骨架
   - 新增 `.env.example` 与 `vite-env.d.ts` 基础声明
   - 完成应用壳与核心业务路由骨架：首页、搜索、歌单、专辑、艺人、Library、Settings、Login、MV
   - 修复 `PlayerDock` 的 `zustand` selector 无限更新问题
-  - 完成 Phase 2 第一批只读接口迁移：推荐歌单、榜单、新专辑、歌手榜、歌单详情、专辑详情、艺人详情、搜索
-  - 首页、歌单页、专辑页、艺人页、搜索页已接入第一批 loader
+  - 完成 Phase 2 只读接口迁移：推荐歌单、榜单、新专辑、歌手榜、歌单详情、专辑详情、艺人详情、搜索
+  - 首页、歌单页、专辑页、艺人页、搜索页已接入 loader
   - 新增 `vitest.config.ts`，补充播放器 store 与曲目可播放性测试并通过
   - 按仓库约定将新增测试移动到根目录 `test/`
   - 修复服务端 Netease API 环境变量读取逻辑，并补充 `.env.local` 中的 Netease API 变量
@@ -23,12 +23,22 @@
   - 修复综合搜索返回结构兼容问题，支持 `result.song.songs` / `result.artist.artists` 等嵌套结果
   - 修复搜索路由未声明 `loaderDeps` 导致切换 `?q=` 后 loader 不重跑、页面始终显示空结果的问题
   - 为搜索页补齐关键词输入、综合/分类切换与分类分页，支持直接通过页面交互发起搜索
+  - 启动 `track` 模块迁移：新增歌曲详情/歌词/播放地址 API，详情页与搜索页已可把歌曲加入底部播放器
+  - 后端连通性问题已解决
+  - 完成 Phase 3 播放器核心第一批实现：
+    - `player-store.ts`：完整的状态管理（队列、播放/暂停、切歌、循环、乱序、持久化）
+    - `track-api.ts`：歌曲详情、歌词、播放地址 API 及 server functions
+    - `lyrics.ts`：LRC 格式歌词解析，支持翻译/罗马音
+    - `play-track-button.tsx`：播放按钮组件，支持播放地址解析
+    - `player-track.ts`：队列构建工具
+    - `player-dock.tsx`：显示当前曲目和歌词预览
 - In progress:
-  - 排查本地后端 3002 端口的实际连通性
+  - Phase 3 播放器核心：接入 Howler 实现真实播放
 - Next:
+  - 创建 `player-engine.ts` 封装 Howler 播放逻辑
+  - 连接 store 状态与 Howler 实例，处理播放进度同步
+  - 完善播放器控制 UI（进度条拖动、音量滑块、播放模式切换）
+  - 创建歌词页面组件（滚动歌词、当前句高亮）
   - 为首页和详情页增加 root 级错误展示，避免直接白屏
-  - 确认 `NETEASE_API_URL` 指向的独立 API 服务可访问
-  - 继续迁移 `track` 模块（歌曲详情、歌词、播放地址）
 - Blockers:
   - 仓库当前缺少部分生成产物，导致全量 TypeScript 检查无法通过（如 `routeTree.gen`、Paraglide 运行时代码）
-  - 当前环境内 `curl http://127.0.0.1:3002` 仍失败，需确认独立后端已实际启动且监听正确地址

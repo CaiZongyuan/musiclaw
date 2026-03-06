@@ -1,256 +1,196 @@
-Welcome to your new TanStack Start app! 
+# Music Claw
 
-# Getting Started
+**English | [中文](README-zh.md)**
 
-To run this application:
+> A modern NetEase Cloud Music player rewritten from **YesPlayMusic** using **TanStack Start** and **React**.
+
+This is a web rewrite of [YesPlayMusic](https://github.com/qier222/YesPlayMusic), migrating from **Vue 2** to **React + TanStack Start**.
+
+---
+
+## Why TanStack Start?
+
+[TanStack Start](https://tanstack.com/start/latest) is a modern full-stack React framework that brings significant advantages over traditional Vue SPA architecture:
+
+### Core Features
+
+| Feature | Description |
+|---------|-------------|
+| **Full-Document SSR** | Server-side rendering for faster initial load and better SEO |
+| **Streaming** | Progressive page loading for smoother user experience |
+| **Type-Safe Routing** | End-to-end TypeScript type safety with TanStack Router |
+| **Server Functions** | Type-safe RPC between client and server |
+| **File-Based Routing** | Intuitive filesystem-based routing like Next.js |
+| **Built-in Data Loading** | Loaders preload data to prevent page flicker |
+| **Search Params Management** | Type-safe URL search parameter handling |
+| **Code Splitting** | Automatic route-based splitting for optimal performance |
+| **Full-Stack Bundling** | Unified client and server builds with Vite |
+| **Universal Deployment** | Deploy to any Vite-compatible hosting platform (Cloudflare Workers for this project) |
+
+### Vue vs TanStack Start
+
+| Vue 2 (Original) | TanStack Start (This Project) |
+|------------------|-------------------------------|
+| Vue Router | TanStack Router (type-safe) |
+| Vuex | Zustand + TanStack Query |
+| vue-i18n | ParaglideJS |
+| Vue CLI | Vite (faster HMR) |
+| SPA only | SSR + SPA hybrid |
+| No type safety | End-to-end type safety |
+
+---
+
+## Tech Stack
+
+```json
+{
+  "Framework": "TanStack Start + React 19",
+  "Routing": "TanStack Router (file-based)",
+  "State Management": "Zustand + TanStack Query",
+  "Styling": "Tailwind CSS v4 + Shadcn UI",
+  "Audio Player": "Howler.js",
+  "Local Storage": "Dexie (IndexedDB)",
+  "i18n": "ParaglideJS",
+  "Auth": "Better Auth",
+  "Testing": "Vitest",
+  "Deployment": "Cloudflare Workers"
+}
+```
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- [Bun](https://bun.sh/) (recommended) or pnpm
+- Node.js 18+
+
+### Install Dependencies
 
 ```bash
 bun install
-bun --bun run dev
 ```
 
-# Building For Production
+### Configure Environment Variables
 
-To build this application for production:
+Copy `.env.example` to `.env.local` and configure the NetEase API URL:
 
 ```bash
-bun --bun run build
+cp .env.example .env.local
 ```
 
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+### Start Development Server
 
 ```bash
-bun --bun run test
+bun run dev
 ```
 
-## Styling
+Visit http://localhost:3000
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-### Removing Tailwind CSS
-
-If you prefer not to use Tailwind CSS:
-
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `bun install @tailwindcss/vite tailwindcss -D`
-
-## Linting & Formatting
-
-
-This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
+### Build for Production
 
 ```bash
-bun --bun run lint
-bun --bun run format
-bun --bun run check
+bun run build
+bun run preview
 ```
 
-
-# Paraglide i18n
-
-This add-on wires up ParaglideJS for localized routing and message formatting.
-
-- Messages live in `project.inlang/messages`.
-- URLs are localized through the Paraglide Vite plugin and router `rewrite` hooks.
-- Run the dev server or build to regenerate the `src/paraglide` outputs.
-
-
-## Shadcn
-
-Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
+### Deploy to Cloudflare Workers
 
 ```bash
-pnpm dlx shadcn@latest add button
+bun run deploy
 ```
 
+---
 
-## Setting up Better Auth
+## Project Structure
 
-1. Generate and set the `BETTER_AUTH_SECRET` environment variable in your `.env.local`:
-
-   ```bash
-   bunx --bun @better-auth/cli secret
-   ```
-
-2. Visit the [Better Auth documentation](https://www.better-auth.com) to unlock the full potential of authentication in your app.
-
-### Adding a Database (Optional)
-
-Better Auth can work in stateless mode, but to persist user data, add a database:
-
-```typescript
-// src/lib/auth.ts
-import { betterAuth } from "better-auth";
-import { Pool } from "pg";
-
-export const auth = betterAuth({
-  database: new Pool({
-    connectionString: process.env.DATABASE_URL,
-  }),
-  // ... rest of config
-});
+```
+src/
+├── components/          # Reusable components
+│   ├── app/            # App-level components
+│   └── ui/             # UI components (Shadcn)
+├── features/           # Business logic modules
+│   ├── player/         # Audio player
+│   ├── auth/           # Authentication
+│   ├── music/          # Music API
+│   └── track/          # Track details
+├── lib/                # Utilities
+│   ├── api/            # API client
+│   ├── db/             # Database (Dexie)
+│   └── constants/      # Constants
+├── routes/             # File-based routes
+│   ├── __root.tsx      # Root layout
+│   ├── index.tsx       # Home page
+│   └── ...
+└── paraglide/          # i18n (auto-generated)
 ```
 
-Then run migrations:
+---
+
+## Development Progress
+
+The project is migrating in phases. See [`docs/progress.md`](docs/progress.md) for details.
+
+- [x] Phase 0: Infrastructure
+- [x] Phase 1: Routing & Page Skeleton
+- [x] Phase 2: Read-Only API Migration
+- [ ] Phase 3: Player Core (in progress)
+- [ ] Phase 4: Core Page Features
+- [ ] Phase 5: Login & User Features
+- [ ] Phase 6: Settings & Caching
+- [ ] Phase 7: Extended Features
+
+---
+
+## Common Commands
 
 ```bash
-bunx --bun @better-auth/cli migrate
+# Development
+bun run dev
+
+# Build
+bun run build
+
+# Preview
+bun run preview
+
+# Testing
+bun run test
+
+# Linting
+bun run lint
+bun run format
+bun run check
+
+# Deploy
+bun run deploy
 ```
 
+---
 
+## Documentation
 
-## Routing
+- [Migration Analysis](docs/yesplaymusic-web-rewrite-analysis.md) — Dependency replacement and architecture decisions
+- [Development Plan](docs/yesplaymusic-web-rewrite-plan.md) — Phased implementation plan
+- [Progress Tracking](docs/progress.md) — Current development status
+- [Collaboration Guidelines](docs/developer-collaboration.md) — Development workflow
 
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
+---
 
-### Adding A Route
+## Related Links
 
-To add a new route to your application just add a new file in the `./src/routes` directory.
+- [TanStack Start Docs](https://tanstack.com/start/latest)
+- [TanStack Router Docs](https://tanstack.com/router/latest)
+- [YesPlayMusic Original](https://github.com/qier222/YesPlayMusic)
+- [NetEase Cloud Music API](https://github.com/Binaryify/NeteaseCloudMusicApi)
 
-TanStack will automatically generate the content of the route file for you.
+---
 
-Now that you have two routes you can use a `Link` component to navigate between them.
+## License
 
-### Adding Links
+MIT
 
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
+---
 
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+*A learning and refactoring project. Thanks to the original YesPlayMusic author for their open-source contribution.*

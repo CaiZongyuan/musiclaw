@@ -7,6 +7,7 @@ import type {
   NeteasePlaylistSummary,
   NeteaseTrack,
 } from '#/features/music/api/types'
+import PlayTrackButton from '#/features/player/components/play-track-button'
 import {
   type NormalizedSearchResponse,
   searchQueryOptions,
@@ -33,6 +34,8 @@ const DEFAULT_SEARCH_PARAMS: SearchParams = {
   type: 1018,
   page: 1,
 }
+
+type SearchLoaderData = NormalizedSearchResponse | null
 
 function normalizePositiveInteger(value: unknown, fallback: number) {
   const normalized =
@@ -75,10 +78,7 @@ function getAlbumArtistNames(album: NeteaseAlbumSummary) {
   )
 }
 
-function getSearchTotalCount(
-  type: number,
-  data: NormalizedSearchResponse | null | undefined,
-) {
+function getSearchTotalCount(type: number, data: SearchLoaderData) {
   switch (type) {
     case 1:
       return data?.result.songCount ?? data?.result.songs.length ?? 0
@@ -93,7 +93,7 @@ function getSearchTotalCount(
   }
 }
 
-function renderSongs(tracks: NeteaseTrack[]) {
+function renderSongs(tracks: NeteaseTrack[], queue = tracks) {
   if (!tracks.length) {
     return <SearchEmptyState message="没有找到匹配的单曲。" />
   }
@@ -117,15 +117,22 @@ function renderSongs(tracks: NeteaseTrack[]) {
                 {track.al?.name ?? track.album?.name ?? '未知专辑'}
               </p>
             </div>
-            <span
-              className={`shrink-0 rounded-full px-2.5 py-1 text-xs ${
-                track.playable
-                  ? 'bg-[rgba(47,106,74,0.12)] text-[var(--palm)]'
-                  : 'bg-[rgba(214,90,90,0.12)] text-[rgb(166,64,64)]'
-              }`}
-            >
-              {track.playable ? '可播放' : track.reason || '不可播放'}
-            </span>
+            <div className="flex shrink-0 items-center gap-3">
+              <span
+                className={`rounded-full px-2.5 py-1 text-xs ${
+                  track.playable === false
+                    ? 'bg-[rgba(214,90,90,0.12)] text-[rgb(166,64,64)]'
+                    : 'bg-[rgba(47,106,74,0.12)] text-[var(--palm)]'
+                }`}
+              >
+                {track.playable === false ? track.reason || '不可播放' : '可播放'}
+              </span>
+              <PlayTrackButton
+                track={track}
+                queue={queue}
+                className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
           </div>
         </article>
       ))}
@@ -236,7 +243,7 @@ export const Route = createFileRoute('/search')({
         limit: PAGE_SIZE,
         offset: (normalizedSearch.page - 1) * PAGE_SIZE,
       }),
-    )
+    ) as Promise<NormalizedSearchResponse>
   },
   component: SearchRoute,
 })
@@ -244,7 +251,7 @@ export const Route = createFileRoute('/search')({
 function SearchRoute() {
   const navigate = Route.useNavigate()
   const search = normalizeSearchParams(Route.useSearch())
-  const data = Route.useLoaderData()
+  const data = Route.useLoaderData() as SearchLoaderData
   const [inputValue, setInputValue] = useState(search.q)
 
   useEffect(() => {
@@ -295,13 +302,14 @@ function SearchRoute() {
   }
 
   const hasQuery = search.q.trim().length > 0
-  const showPagination = hasQuery && search.type !== 1018 && totalCount > PAGE_SIZE
+  const showPagination =
+    hasQuery && search.type !== 1018 && totalCount > PAGE_SIZE
 
   return (
     <RoutePlaceholder
       eyebrow="Search"
       title="搜索已经可以直接使用"
-      description="支持关键词输入、综合/分类搜索切换，以及分类结果分页。下一步会继续补播放入口与更完整的筛选。"
+      description="支持关键词输入、综合/分类搜索切换、分类分页，以及从结果里直接把歌曲加入播放器。"
       actions={
         <>
           <Link
@@ -364,11 +372,16 @@ function SearchRoute() {
             <section className="flex flex-col gap-3 rounded-3xl border border-[var(--line)] bg-[rgba(79,184,178,0.06)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="m-0 text-sm text-[var(--sea-ink-soft)]">
-                  关键词 <span className="font-semibold text-[var(--sea-ink)]">{search.q}</span>
+                  关键词{' '}
+                  <span className="font-semibold text-[var(--sea-ink)]">
+                    {search.q}
+                  </span>
                 </p>
                 <p className="mt-1 text-xs text-[var(--sea-ink-soft)]">
                   当前分类：{currentTypeLabel}
-                  {search.type !== 1018 ? ` · 共 ${totalCount} 条 · 第 ${search.page}/${totalPages} 页` : ''}
+                  {search.type !== 1018
+                    ? ` · 共 ${totalCount} 条 · 第 ${search.page}/${totalPages} 页`
+                    : ''}
                 </p>
               </div>
             </section>
@@ -388,7 +401,10 @@ function SearchRoute() {
                       查看单曲结果
                     </button>
                   </div>
-                  {renderSongs((data?.result.songs ?? []).slice(0, 8))}
+                  {renderSongs(
+                    (data?.result.songs ?? []).slice(0, 8),
+                    data?.result.songs ?? [],
+                  )}
                 </section>
 
                 <section className="island-shell rounded-3xl p-5">
