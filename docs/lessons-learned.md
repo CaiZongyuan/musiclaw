@@ -131,3 +131,14 @@
   - 为这类 route 显式声明 `loaderDeps: ({ search }) => ...`，并在 `loader` 中统一使用 `deps`
 - Prevention:
   - 以后凡是依赖 query string 拉数据的 TanStack Router 页面，都先补 `loaderDeps`，避免把 search 参数漏出缓存键
+
+## 搜索页优先让 URL 成为唯一状态源
+
+- Context:
+  - 搜索页同时包含关键词、分类和分页，这些状态既影响 loader，也影响缓存命中
+- Problem:
+  - 如果输入框、当前分类和当前页只放在本地 state，刷新、分享链接和前进后退都会变得不可靠
+- Resolution:
+  - 让 `q`、`type`、`page` 全部进入路由 search 参数，表单和分页只负责更新 URL，loader 统一从 `loaderDeps` 读取
+- Prevention:
+  - 后续实现筛选、排序、MV 搜索等功能时，也优先把影响数据请求的状态放进 URL

@@ -138,7 +138,12 @@ Set `BETTER_AUTH_SECRET` in `.env.local`.
 
 **Subject**: Imperative mood, 72 chars max, no period
 
-**Body**: What changed and why, wrap at 72 chars. No AI/agent attribution.
+**Body**: What changed and why, wrap at 72 chars.
+
+**IMPORTANT**: Do NOT add any AI/agent attribution lines such as:
+- `Co-Authored-By: Claude ...`
+- `Assisted by ...`
+- `Generated with ...`
 
 ```
 feat(auth): add email/password authentication
