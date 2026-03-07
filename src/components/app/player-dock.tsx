@@ -147,6 +147,14 @@ export default function PlayerDock() {
       return
     }
 
+    if (queueSource.to === '/explore') {
+      void navigate({
+        to: '/explore',
+        search: { category: queueSource.exploreCategory ?? '全部' },
+      })
+      return
+    }
+
     if (queueSource.to === '/search' && queueSource.search) {
       void navigate({ to: '/search', search: queueSource.search })
       return

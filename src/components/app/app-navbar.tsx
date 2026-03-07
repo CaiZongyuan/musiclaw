@@ -134,6 +134,7 @@ export default function AppNavbar() {
           </Link>
           <Link
             to="/explore"
+            search={{ category: '全部' }}
             activeProps={{ className: 'app-navbar__link app-navbar__link--active' }}
             className="app-navbar__link"
           >

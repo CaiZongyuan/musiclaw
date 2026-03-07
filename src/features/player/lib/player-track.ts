@@ -1,6 +1,12 @@
 import type { NeteaseTrack } from '#/features/music/api/types'
 import type { PlayerTrack } from '#/features/player/stores/player-store'
 
+export function filterPlayableTracks<TTrack extends Pick<NeteaseTrack, 'playable'>>(
+  tracks: TTrack[],
+) {
+  return tracks.filter((track) => track.playable !== false)
+}
+
 export function getPlayerTrackArtists(track: NeteaseTrack) {
   return track.ar?.map((artist) => artist.name) ??
     track.artists?.map((artist) => artist.name) ??
@@ -27,5 +33,5 @@ export function mapNeteaseTrackToPlayerTrack(track: NeteaseTrack): PlayerTrack {
 }
 
 export function buildPlayerQueueFromTracks(tracks: NeteaseTrack[]) {
-  return tracks.map(mapNeteaseTrackToPlayerTrack)
+  return filterPlayableTracks(tracks).map(mapNeteaseTrackToPlayerTrack)
 }

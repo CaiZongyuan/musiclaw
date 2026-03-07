@@ -7,6 +7,7 @@ import { hasAccountNeteaseSession, useAuthStore } from '#/features/auth/stores/a
 import { dailySongsQueryOptions } from '#/features/home/api/for-you-api'
 import { buildPlayerQueueFromTracks } from '#/features/player/lib/player-track'
 import { usePlayerStore } from '#/features/player/stores/player-store'
+import { usePlayableTracks } from '#/lib/music/playability-client'
 
 const DEFAULT_COVERS = [
   'https://p2.music.126.net/0-Ybpa8FrDfRgKYCTJD8Xg==/109951164796696795.jpg',
@@ -37,10 +38,14 @@ export default function DailyTracksFeatureCard() {
     ...dailySongsQueryOptions(),
     enabled: hasAccountSession,
   })
+  const playableDailyTracks = usePlayableTracks(dailyTracks)
 
   const coverUrl = useMemo(
-    () => dailyTracks[0]?.al?.picUrl ?? dailyTracks[0]?.album?.picUrl ?? getFallbackCover(),
-    [dailyTracks],
+    () =>
+      playableDailyTracks[0]?.al?.picUrl ??
+      playableDailyTracks[0]?.album?.picUrl ??
+      getFallbackCover(),
+    [playableDailyTracks],
   )
 
   const trackSummary = useMemo(() => {
@@ -48,17 +53,17 @@ export default function DailyTracksFeatureCard() {
       return '登录账号后即可像旧版一样直接播放当天推荐歌曲。'
     }
 
-    if (dailyTracks.length === 0) {
+    if (playableDailyTracks.length === 0) {
       return isFetching
         ? '正在同步今日推荐歌曲…'
         : '今天的推荐歌曲还没加载出来，进入日推页后可以再试一次。'
     }
 
-    return dailyTracks
+    return playableDailyTracks
       .slice(0, 3)
       .map((track) => track.name)
       .join(' · ')
-  }, [dailyTracks, hasAccountSession, isFetching])
+  }, [hasAccountSession, isFetching, playableDailyTracks])
 
   return (
     <article
@@ -102,12 +107,12 @@ export default function DailyTracksFeatureCard() {
             return
           }
 
-          if (dailyTracks.length === 0) {
+          if (playableDailyTracks.length === 0) {
             navigate({ to: '/daily/songs' })
             return
           }
 
-          loadQueueAndPlay(buildPlayerQueueFromTracks(dailyTracks), dailyTracks[0]?.id, { label: '每日推荐', to: '/daily/songs' })
+          loadQueueAndPlay(buildPlayerQueueFromTracks(playableDailyTracks), playableDailyTracks[0]?.id, { label: '每日推荐', to: '/daily/songs' })
         }}
         aria-label="播放每日推荐"
       >

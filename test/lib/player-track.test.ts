@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import {
   buildPlayerQueueFromTracks,
+  filterPlayableTracks,
   mapNeteaseTrackToPlayerTrack,
 } from '../../src/features/player/lib/player-track'
 
@@ -33,5 +34,25 @@ describe('player track mapping', () => {
         { id: 2, name: 'B' },
       ]),
     ).toHaveLength(2)
+  })
+
+  test('filters unplayable tracks before building the queue', () => {
+    expect(
+      filterPlayableTracks([
+        { id: 1, name: 'A', playable: true },
+        { id: 2, name: 'B', playable: false },
+        { id: 3, name: 'C' },
+      ]),
+    ).toEqual([
+      { id: 1, name: 'A', playable: true },
+      { id: 3, name: 'C' },
+    ])
+
+    expect(
+      buildPlayerQueueFromTracks([
+        { id: 1, name: 'A', playable: true },
+        { id: 2, name: 'B', playable: false },
+      ]),
+    ).toHaveLength(1)
   })
 })

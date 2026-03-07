@@ -1,5 +1,70 @@
 # Progress
 
+## 2026-03-07（第十五轮后续修正：播放器连续自动下一首）
+
+- Done:
+  - 修复全局播放器在取流失败 / 浏览器播放报错时可能持续无上限 `skipToNext`，导致歌曲连续快速切换的问题
+  - `src/features/player/components/player-engine.tsx` 现在对“缺少有效音源 / 音源加载失败”增加连续失败保护：短时间内连续失败达到阈值后直接停止自动跳歌
+  - `src/features/player/components/player-engine.tsx` 不再把 `onplayerror` 直接当成“当前歌曲不可播”并自动切到下一首，避免浏览器自动播放限制或临时播放错误把整条队列扫过去
+  - `src/features/player/lib/player-track.ts` 现在会在公共建队列层过滤 `playable === false` 的歌曲，避免不同页面重复漏掉这层过滤
+  - 首页 `Daily Tracks` 与 `Personal FM` 的直接播放入口已补齐客户端可播性校正，并在启动播放时定位到第一首可播歌曲
+  - 已运行 `./node_modules/.bin/tsc --noEmit`，当前 TypeScript 校验通过
+  - 已运行 `bunx vitest run test/lib/player-track.test.ts test/stores/player-store.test.ts --config vitest.config.ts`，当前 2 个测试文件共 14 个测试全部通过
+- In progress:
+  - 等待真实浏览器复测，确认首页、详情页和播放器控制条都不再出现“点击播放后疯狂下一首”的现象
+- Next:
+  - 优先让你复测首页 `Daily Tracks / Personal FM` 与任一歌单 / 专辑 / 艺人页的播放链路
+  - 若复测通过，再继续推进 `New Album / MV` 主路径
+- Blockers:
+  - 当前仍需要真实设备 / 浏览器确认：如果某些浏览器仍会对 HTML5 Audio 触发特殊 `playerror`，还需基于复测结果决定是否补显式错误提示
+
+## 2026-03-07（第十五轮功能收口：Explore 页面回迁）
+
+- Done:
+  - `src/routes/explore.tsx` 已从 `RoutePlaceholder` 说明页替换为更接近原版的 Explore 分类浏览页结构，恢复顶部分类切换、更多分类面板和内容网格
+  - 新增 `src/features/explore/api/explore-api.ts`，按原版分类语义接入 `推荐歌单 / 精品歌单 / 排行榜 / 普通分类歌单` 的不同数据源与分页方式
+  - 新增 `src/features/explore/lib/explore-helpers.ts`，补齐原版默认分类集合、更多分类分组以及 Explore 来源上下文构建逻辑
+  - Explore 卡片已支持直接进入歌单详情，也支持从卡片直接播放整张歌单
+  - 播放器来源语义已补到 Explore：从 Explore 卡片播放后，底部播放器来源可跳回 `/explore?category=...` 的正确分类上下文
+  - `src/components/app/player-dock.tsx` 与 `src/features/player/stores/player-store.ts` 已扩展 `/explore` 来源跳转能力
+  - `src/styles.css` 已新增 Explore 页面的分类按钮、分类面板、卡片网格和响应式样式，不再沿用占位页视觉
+  - 新增 `test/lib/explore-helpers.test.ts`
+  - 已运行 `./node_modules/.bin/tsc --noEmit`，当前 TypeScript 校验通过
+  - 已运行 `bunx vitest run`，当前 9 个测试文件共 35 个测试全部通过
+- In progress:
+  - 等待真实浏览器手测，确认 Explore 的分类切换、加载更多、卡片播放和播放器来源回跳都稳定
+- Next:
+  - 优先继续推进 `New Album`，其次是 `MV` 主路径
+  - 根据手测结果继续微调 Explore 的卡片密度、分类按钮节奏和移动端间距
+- Blockers:
+  - Explore 目前已恢复主结构与来源语义，但“推荐歌单”仍未额外合并账号态每日推荐歌单分支；若要继续追更细 parity，可在后续单独补这一层
+
+## 2026-03-07（第十五轮后续修正：Explore 卡片播放连跳）
+
+- Done:
+  - 修复 `/explore` 卡片“直接播放歌单”时，播放器可能因为队列里混入不可播歌曲而快速连续 `skipToNext` 的问题
+  - `src/routes/explore.tsx` 的卡片播放现在会先过滤 `playable !== false` 的曲目，再构建播放队列并定位到第一首可播歌曲
+  - 已运行 `./node_modules/.bin/tsc --noEmit`，当前 TypeScript 校验通过
+  - 已运行 `bunx vitest run`，当前 9 个测试文件共 35 个测试全部通过
+- In progress:
+  - 等待真实浏览器复测，确认 Explore 卡片播放不再出现“自动快速切到下一首”的现象
+- Next:
+  - 如果复测通过，继续推进 `New Album`
+- Blockers:
+  - 无新增 blocker；当前仍以 `New Album / MV` 主路径未完成为主
+
+## 2026-03-07（协作文档补充：TODO / Latest Handoff）
+
+- Done:
+  - 新增 `docs/todo-2026-03-07.md`，把当前剩余功能按优先级整理成可执行清单
+  - 新增 `docs/handoff-2026-03-07-latest.md`，补充当前最新已完成状态、用户已验证边界、剩余主线路径与建议接手顺序
+- In progress:
+  - 等待下一位开发者按新 TODO 顺序继续推进 `Explore / New Album / MV` 主路径
+- Next:
+  - 接手前先看 `docs/progress.md`、`docs/todo-2026-03-07.md`、`docs/handoff-2026-03-07-latest.md`
+- Blockers:
+  - 无新增 blocker；当前 blocker 仍以未完成主路径页和 `build` 既有问题为主
+
 ## 2026-03-07（第十四轮功能收口：Library / Playlist / Album / Artist 页面骨架回迁）
 
 - Done:

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Howl } from 'howler'
 import { useShallow } from 'zustand/react/shallow'
 import { fetchTrackSourceClient } from '#/features/track/api/track-api'
@@ -6,6 +6,8 @@ import { usePlayerStore } from '#/features/player/stores/player-store'
 
 const PROGRESS_SYNC_INTERVAL = 250
 const SEEK_SYNC_THRESHOLD = 1.25
+const AUTO_SKIP_FAILURE_WINDOW_MS = 5000
+const MAX_AUTO_SKIP_FAILURES = 3
 
 export default function PlayerEngine() {
   const {
@@ -13,6 +15,7 @@ export default function PlayerEngine() {
     durationSeconds,
     isPlaying,
     progressSeconds,
+    pause,
     queue,
     setDurationSeconds,
     setProgressSeconds,
@@ -24,6 +27,7 @@ export default function PlayerEngine() {
       currentTrackId: state.currentTrackId,
       durationSeconds: state.durationSeconds,
       isPlaying: state.isPlaying,
+      pause: state.pause,
       progressSeconds: state.progressSeconds,
       queue: state.queue,
       setDurationSeconds: state.setDurationSeconds,
@@ -39,6 +43,38 @@ export default function PlayerEngine() {
   const howlRef = useRef<Howl | null>(null)
   const playbackSignatureRef = useRef<string | null>(null)
   const isTickingRef = useRef(false)
+  const autoSkipWindowStartedAtRef = useRef(0)
+  const autoSkipFailureCountRef = useRef(0)
+
+  const resetAutoSkipFailures = useCallback(() => {
+    autoSkipWindowStartedAtRef.current = 0
+    autoSkipFailureCountRef.current = 0
+  }, [])
+
+  const handleAutoSkipFailure = useCallback(() => {
+    const now = Date.now()
+
+    if (
+      autoSkipWindowStartedAtRef.current === 0 ||
+      now - autoSkipWindowStartedAtRef.current > AUTO_SKIP_FAILURE_WINDOW_MS
+    ) {
+      autoSkipWindowStartedAtRef.current = now
+      autoSkipFailureCountRef.current = 1
+    } else {
+      autoSkipFailureCountRef.current += 1
+    }
+
+    if (autoSkipFailureCountRef.current >= MAX_AUTO_SKIP_FAILURES) {
+      pause()
+      return
+    }
+
+    skipToNext()
+  }, [pause, skipToNext])
+
+  const handlePlaybackError = useCallback(() => {
+    pause()
+  }, [pause])
 
   useEffect(() => {
     if (!currentTrack || currentTrack.sourceUrl) {
@@ -47,23 +83,31 @@ export default function PlayerEngine() {
 
     let isCancelled = false
 
-    void fetchTrackSourceClient(currentTrack.id).then((source) => {
-      if (isCancelled) {
-        return
-      }
+    void fetchTrackSourceClient(currentTrack.id)
+      .then((source) => {
+        if (isCancelled) {
+          return
+        }
 
-      if (source.url && source.freeTrialInfo == null) {
-        setTrackSource(currentTrack.id, source.url)
-        return
-      }
+        if (source.url && source.freeTrialInfo == null) {
+          setTrackSource(currentTrack.id, source.url)
+          return
+        }
 
-      skipToNext()
-    })
+        handleAutoSkipFailure()
+      })
+      .catch(() => {
+        if (isCancelled) {
+          return
+        }
+
+        handleAutoSkipFailure()
+      })
 
     return () => {
       isCancelled = true
     }
-  }, [currentTrack, setTrackSource, skipToNext])
+  }, [currentTrack, handleAutoSkipFailure, setTrackSource])
 
   useEffect(() => {
     const signature = currentTrack?.sourceUrl
@@ -92,6 +136,7 @@ export default function PlayerEngine() {
         }
       },
       onplay: () => {
+        resetAutoSkipFailures()
         const duration = nextHowl.duration()
         if (Number.isFinite(duration) && duration > 0) {
           setDurationSeconds(duration)
@@ -101,10 +146,10 @@ export default function PlayerEngine() {
         skipToNext()
       },
       onloaderror: () => {
-        skipToNext()
+        handleAutoSkipFailure()
       },
       onplayerror: () => {
-        skipToNext()
+        handlePlaybackError()
       },
     })
 
@@ -125,7 +170,15 @@ export default function PlayerEngine() {
         playbackSignatureRef.current = null
       }
     }
-  }, [currentTrack?.id, currentTrack?.sourceUrl, setDurationSeconds, skipToNext])
+  }, [
+    currentTrack?.id,
+    currentTrack?.sourceUrl,
+    handleAutoSkipFailure,
+    handlePlaybackError,
+    resetAutoSkipFailures,
+    setDurationSeconds,
+    skipToNext,
+  ])
 
   useEffect(() => {
     const howl = howlRef.current

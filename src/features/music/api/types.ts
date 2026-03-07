@@ -1,6 +1,7 @@
 export interface NeteaseImageOwner {
   id: number
   name: string
+  nickname?: string
 }
 
 export interface NeteaseArtistSummary {
@@ -65,6 +66,9 @@ export interface NeteasePlaylistSummary {
   playCount?: number
   trackCount?: number
   copywriter?: string
+  description?: string
+  updateFrequency?: string
+  updateTime?: number
   creator?: NeteaseImageOwner
 }
 

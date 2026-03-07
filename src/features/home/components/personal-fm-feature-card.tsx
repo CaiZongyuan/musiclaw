@@ -11,6 +11,7 @@ import {
 } from '#/features/home/api/for-you-api'
 import { buildPlayerQueueFromTracks } from '#/features/player/lib/player-track'
 import { usePlayerStore } from '#/features/player/stores/player-store'
+import { remapTracksPlayableStatusForAuth, usePlayableTracks } from '#/lib/music/playability-client'
 
 export default function PersonalFmFeatureCard() {
   const navigate = useNavigate()
@@ -38,13 +39,14 @@ export default function PersonalFmFeatureCard() {
     ...personalFmQueryOptions(),
     enabled: hasAccountSession,
   })
+  const playableFmTracks = usePlayableTracks(fmTracks)
   const [activeIndex, setActiveIndex] = useState(0)
 
   useEffect(() => {
     setActiveIndex(0)
-  }, [fmTracks])
+  }, [playableFmTracks])
 
-  const activeTrack = fmTracks[activeIndex] ?? fmTracks[0] ?? null
+  const activeTrack = playableFmTracks[activeIndex] ?? playableFmTracks[0] ?? null
   const activeArtists = useMemo(() => {
     if (!activeTrack) {
       return ''
@@ -68,11 +70,15 @@ export default function PersonalFmFeatureCard() {
         ...personalFmQueryOptions(),
         queryFn: fetchPersonalFm,
       })
+      const playableNextTracks = remapTracksPlayableStatusForAuth(
+        nextTracks,
+        authSnapshot,
+      )
 
       setActiveIndex(0)
 
-      if (nextTracks[0]) {
-        loadQueueAndPlay(buildPlayerQueueFromTracks(nextTracks), nextTracks[0].id, { label: '私人 FM' })
+      if (playableNextTracks[0]) {
+        loadQueueAndPlay(buildPlayerQueueFromTracks(playableNextTracks), playableNextTracks[0].id, { label: '私人 FM' })
       }
     },
   })
@@ -83,7 +89,7 @@ export default function PersonalFmFeatureCard() {
       return
     }
 
-    if (!activeTrack || fmTracks.length === 0) {
+    if (!activeTrack || playableFmTracks.length === 0) {
       void refetch()
       return
     }
@@ -93,7 +99,7 @@ export default function PersonalFmFeatureCard() {
       return
     }
 
-    loadQueueAndPlay(buildPlayerQueueFromTracks(fmTracks), activeTrack.id, { label: '私人 FM' })
+    loadQueueAndPlay(buildPlayerQueueFromTracks(playableFmTracks), activeTrack.id, { label: '私人 FM' })
   }
 
   const handleNext = async () => {
@@ -102,9 +108,12 @@ export default function PersonalFmFeatureCard() {
       return
     }
 
-    if (fmTracks.length === 0) {
+    if (playableFmTracks.length === 0) {
       const result = await refetch()
-      const nextTracks = result.data ?? []
+      const nextTracks = remapTracksPlayableStatusForAuth(
+        result.data ?? [],
+        authSnapshot,
+      )
 
       if (nextTracks[0]) {
         loadQueueAndPlay(buildPlayerQueueFromTracks(nextTracks), nextTracks[0].id, { label: '私人 FM' })
@@ -113,16 +122,19 @@ export default function PersonalFmFeatureCard() {
       return
     }
 
-    const nextTrack = fmTracks[activeIndex + 1]
+    const nextTrack = playableFmTracks[activeIndex + 1]
 
     if (nextTrack) {
       setActiveIndex(activeIndex + 1)
-      loadQueueAndPlay(buildPlayerQueueFromTracks(fmTracks), nextTrack.id, { label: '私人 FM' })
+      loadQueueAndPlay(buildPlayerQueueFromTracks(playableFmTracks), nextTrack.id, { label: '私人 FM' })
       return
     }
 
     const result = await refetch()
-    const nextTracks = result.data ?? []
+    const nextTracks = remapTracksPlayableStatusForAuth(
+      result.data ?? [],
+      authSnapshot,
+    )
 
     if (nextTracks[0]) {
       loadQueueAndPlay(buildPlayerQueueFromTracks(nextTracks), nextTracks[0].id, { label: '私人 FM' })
