@@ -1,0 +1,200 @@
+import { useQuery } from '@tanstack/react-query'
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { useMemo, useState } from 'react'
+import { useShallow } from 'zustand/react/shallow'
+import PlayTrackButton from '#/features/player/components/play-track-button'
+import { buildPlayerQueueFromTracks } from '#/features/player/lib/player-track'
+import { usePlayerStore } from '#/features/player/stores/player-store'
+import { playlistDetailQueryOptions } from '#/features/playlist/api/playlist-api'
+import { trackDetailQueryOptions } from '#/features/track/api/track-api'
+import { useAuthStore } from '#/features/auth/stores/auth-store'
+import { userPlaylistsQueryOptions } from '#/features/user/api/user-api'
+import type { NeteaseTrack } from '#/features/music/api/types'
+
+export const Route = createFileRoute('/library/liked-songs')({
+  component: LikedSongsRoute,
+})
+
+const PAGE_SIZE = 50
+
+function LikedSongsRoute() {
+  const isClient = typeof window !== 'undefined'
+  const [currentPage, setCurrentPage] = useState(1)
+  const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
+  const { profile, rawCookie } = useAuthStore(
+    useShallow((state) => ({
+      profile: state.profile,
+      rawCookie: state.rawCookie,
+    })),
+  )
+
+  const hasSession = Boolean(rawCookie && profile?.userId)
+  const userId = profile?.userId ?? null
+
+  const playlistsQuery = useQuery({
+    ...userPlaylistsQueryOptions(userId ?? 0),
+    enabled: isClient && hasSession && userId !== null,
+  })
+
+  const likedSongsPlaylist = playlistsQuery.data?.playlist[0] ?? null
+
+  const likedSongsQuery = useQuery({
+    ...playlistDetailQueryOptions(likedSongsPlaylist?.id ?? 0),
+    enabled: Boolean(likedSongsPlaylist?.id),
+  })
+
+  const baseTracks = useMemo(
+    () => (likedSongsQuery.data?.playlist.tracks ?? []) as NeteaseTrack[],
+    [likedSongsQuery.data],
+  )
+
+  const playlistTrackIds = likedSongsQuery.data?.playlist.trackIds ?? []
+  const totalTrackCount = likedSongsPlaylist?.trackCount ?? playlistTrackIds.length ?? baseTracks.length
+  const totalPages = Math.max(1, Math.ceil((totalTrackCount || baseTracks.length || 1) / PAGE_SIZE))
+  const safeCurrentPage = Math.min(currentPage, totalPages)
+  const pageStartIndex = (safeCurrentPage - 1) * PAGE_SIZE
+  const pageEndIndex = pageStartIndex + PAGE_SIZE
+
+  const pageTrackIds = playlistTrackIds
+    .slice(pageStartIndex, pageEndIndex)
+    .map((track) => track.id)
+
+  const knownTrackIds = new Set(baseTracks.map((track) => track.id))
+  const missingPageTrackIds = pageTrackIds.filter((trackId) => !knownTrackIds.has(trackId))
+
+  const missingTracksQuery = useQuery({
+    ...trackDetailQueryOptions(missingPageTrackIds.join(',')),
+    enabled: missingPageTrackIds.length > 0,
+  })
+
+  const hydratedTrackMap = useMemo(() => {
+    const map = new Map<number, NeteaseTrack>()
+
+    for (const track of baseTracks) {
+      map.set(track.id, track)
+    }
+
+    for (const track of missingTracksQuery.data?.songs ?? []) {
+      map.set(track.id, track)
+    }
+
+    return map
+  }, [baseTracks, missingTracksQuery.data])
+
+  const currentPageTracks = useMemo(() => {
+    if (pageTrackIds.length > 0) {
+      return pageTrackIds
+        .map((trackId) => hydratedTrackMap.get(trackId))
+        .filter((track): track is NeteaseTrack => Boolean(track))
+    }
+
+    return baseTracks.slice(pageStartIndex, pageEndIndex)
+  }, [baseTracks, hydratedTrackMap, pageEndIndex, pageStartIndex, pageTrackIds])
+
+  const canGoPrevious = safeCurrentPage > 1
+  const canGoNext = safeCurrentPage < totalPages
+
+  if (!hasSession) {
+    return (
+      <main className="py-10">
+        <section className="island-shell rounded-[2rem] p-6 sm:p-8">
+          <p className="island-kicker mb-3">Liked Songs</p>
+          <h1 className="display-title m-0 text-4xl font-bold text-[var(--sea-ink)] sm:text-5xl">
+            登录后才能查看我喜欢的音乐
+          </h1>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link to="/login" className="app-chip">
+              去登录
+            </Link>
+            <Link to="/library" className="app-chip">
+              返回音乐库
+            </Link>
+          </div>
+        </section>
+      </main>
+    )
+  }
+
+  return (
+    <main className="py-10">
+      <section className="island-shell rounded-[2rem] p-6 sm:p-8">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-3xl">
+            <p className="island-kicker mb-3">Liked Songs</p>
+            <h1 className="display-title m-0 text-4xl font-bold text-[var(--sea-ink)] sm:text-5xl">
+              我喜欢的音乐
+            </h1>
+            <p className="mt-4 text-sm leading-7 text-[var(--sea-ink-soft)] sm:text-base">
+              这一页现在直接读取你喜欢歌曲歌单的详细列表，并支持分页浏览、播放全部或逐首播放。
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Link to="/library" className="app-chip">
+              返回音乐库
+            </Link>
+            <button
+              type="button"
+              onClick={() => loadQueueAndPlay(buildPlayerQueueFromTracks(baseTracks))}
+              disabled={baseTracks.length === 0}
+              className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              播放已加载曲目
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-[var(--line)] bg-[rgba(255,255,255,0.42)] px-4 py-3 text-sm text-[var(--sea-ink-soft)]">
+          <span>
+            共 {totalTrackCount || baseTracks.length} 首 · 第 {safeCurrentPage} / {totalPages} 页
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={!canGoPrevious}
+              className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              上一页
+            </button>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              disabled={!canGoNext}
+              className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              下一页
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-3">
+          {likedSongsQuery.isLoading || missingTracksQuery.isLoading ? (
+            <div className="library-empty-state">正在加载喜欢的歌曲…</div>
+          ) : currentPageTracks.length > 0 ? (
+            currentPageTracks.map((track, index) => (
+              <article key={track.id} className="library-track-row">
+                <div className="min-w-0 flex-1">
+                  <p className="library-track-row__title">
+                    {pageStartIndex + index + 1}. {track.name}
+                  </p>
+                  <p className="library-track-row__meta">
+                    {track.ar?.map((artist) => artist.name).join(' / ') ?? 'Unknown artist'}
+                    {track.al?.name ? ` · ${track.al.name}` : ''}
+                  </p>
+                </div>
+                <PlayTrackButton
+                  track={track}
+                  queue={currentPageTracks}
+                  className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </article>
+            ))
+          ) : (
+            <div className="library-empty-state">当前还没有拿到喜欢歌曲列表。</div>
+          )}
+        </div>
+      </section>
+    </main>
+  )
+}

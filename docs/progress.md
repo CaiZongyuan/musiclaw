@@ -1,97 +1,50 @@
 # Progress
 
-## 2026-03-07（第二轮功能收口：Next Up 队列页）
+## 2026-03-07（第五轮修正：liked songs 分页）
 
 - Done:
-  - 对照旧版 `src/views/next.vue` 明确当前阶段目标：至少先补齐“当前播放 + 下一首列表”的核心可用功能
-  - 将 `/next` 从占位页升级为真实队列页，展示当前播放歌曲和后续最多 100 首队列，见 `src/routes/next.tsx`
-  - 队列页已支持直接点击“播放”切换当前歌曲
-  - 为播放器 store 新增 `removeTrackFromQueue`，支持从后续队列中移除歌曲，见 `src/features/player/stores/player-store.ts`
-  - 为 `Next Up` 页面补充独立样式，使其和当前播放器视觉语言保持一致，见 `src/styles.css`
+  - 修复 `/library/liked-songs` 只显示前 50 首的问题，改为真正的分页浏览
+  - 当前页会优先使用歌单详情里已返回的曲目；如果当前分页缺少曲目详情，会按 `trackIds` 补拉对应歌曲详情
+  - 增加上一页 / 下一页分页控件，并展示总歌曲数与当前页码
 - In progress:
-  - 继续把播放器相关页面从“可用”推进到更接近旧版的交互完整度
+  - 继续把用户音乐库页面往旧版完整行为收口
 - Next:
-  - 给 `/next` 继续补更接近旧版的列表细节与当前播放高亮表现
-  - 继续补旧版缺失路由：`/artist/:id/mv`、`/library/liked-songs`
-  - 评估是否为播放器增加“喜欢歌曲”和“列表来源跳转”等旧版能力
+  - 根据你的验证结果，决定是继续补页码直达 / 每页条数，还是转向下一块功能
+  - 继续完善登录分流页和更多用户库分区
 - Blockers:
-  - 当前 store 还没有旧版 `playNextList` 那种“插队播放”独立队列能力，因此 `/next` 暂时只展示当前主队列
+  - “播放全部”目前仍以当前已加载曲目为主，若后端对大歌单做分段返回，完整全量队列还需后续继续补
   - 仓库当前缺少部分生成产物，导致全量 TypeScript 检查无法通过（如 `routeTree.gen`、Paraglide 运行时代码）
 
-## 2026-03-07（第一轮 UI 收口：Navbar / Player / 首页）
+## 2026-03-07（第四轮功能收口：可用登录页）
 
 - Done:
-  - 对照旧版 `src/components/Navbar.vue`，把当前全局壳体从左侧栏改回顶部固定导航
-  - 新增 `src/components/app/app-navbar.tsx`，恢复旧版主导航结构：返回/前进、`Home / Explore / Library`、右侧搜索框与头像入口
-  - 对照旧版 `src/components/Player.vue`，重排 `src/components/app/player-dock.tsx` 为更接近原版的三段式底部播放器
-  - 顶部细进度条、左侧封面信息、中间播放控制、右侧队列/循环/随机/音量/歌词入口已完成第一轮收口
-  - 对照旧版 `src/views/home.vue`，把首页从两列仪表盘式布局改回纵向内容流
-  - 首页区块顺序已按旧版重排为：`by Apple Music`、`推荐歌单`、`For You`、`推荐歌手`、`新专辑`、`排行榜`
-  - 新增占位路由以恢复旧版入口闭环：`/explore`、`/new-album`、`/next`、`/daily/songs`
-  - 新增 `docs/navbar-player-home-parity.md`，记录这三块的旧版基线、本轮已收口项和剩余差距
+  - 新增 `src/features/auth/api/auth-api.ts`，补上手机号登录、邮箱登录、二维码 key / 状态轮询、用户资料拉取与 cookie 解析
+  - 将 `src/routes/login.tsx` 从说明页替换成可用登录页，支持二维码登录、手机号登录与邮箱登录
+  - 登录成功后会把网易云 cookie、`MUSIC_U`、`__csrf` 与用户资料写入 `auth-store`，然后跳转到 `/library`
+  - 已补“已登录”状态展示与“清空本地登录态”入口，避免重复登录时卡死
 - In progress:
-  - 继续把 Navbar / Player / 首页从“结构接近”推进到“视觉和交互更接近”
+  - 继续把登录态相关页面从“能登录”推进到更接近旧版完整体验
 - Next:
-  - 微调顶部导航的尺寸、字重、搜索框和头像交互，继续贴近旧版
-  - 微调播放器按钮尺寸、状态样式和 `/next` 队列页内容
-  - 把首页 `by Apple Music`、`For You` 的占位结构继续换成更接近旧版的真实内容
+  - 验证登录成功后 `/library` 与 `/library/liked-songs` 的联动是否稳定
+  - 继续补旧版登录分流页与更多用户态页面细节
+  - 视测试结果决定是否补 `/login/account` 与 `/login/username` 路由来进一步贴近原版
 - Blockers:
+  - 当前登录链路依赖外部 Netease API 服务的登录接口可用；如果后端未启动或返回异常，前端只能提示错误
   - 仓库当前缺少部分生成产物，导致全量 TypeScript 检查无法通过（如 `routeTree.gen`、Paraglide 运行时代码）
-  - 首页 `by Apple Music`、`Daily Tracks`、`Personal FM` 仍未完全接回旧版真实数据链路
 
-## 2026-03-07（方向校正）
+## 2026-03-07（第三轮功能收口：Library 与 liked songs）
 
 - Done:
-  - 对照 `/root/Projects/Frontend/YesPlayMusic/src/router/index.js` 重新梳理旧版 Web 路由基线
-  - 对照旧版 `App.vue`、`Navbar.vue`、`Player.vue` 重新确认全局壳体与播放器是当前第一优先级
-  - 识别当前项目的主线偏差：工程实现推进快于产品复刻校验
-  - 重写 `docs/yesplaymusic-web-rewrite-plan.md`，将主线切换为“原版功能和 UI 1:1 复刻优先”
-  - 更新 `docs/yesplaymusic-web-rewrite-analysis.md` 与 `docs/lessons-learned.md`，明确“旧仓库源码是唯一产品规范”
+  - 新增 `src/features/user/api/user-api.ts`，通过登录 cookie 拉取当前用户歌单列表
+  - 将 `/library` 从占位页升级为可用的音乐库首页，优先展示用户信息、我喜欢的音乐入口和歌单列表
+  - 新增 `/library/liked-songs` 路由，直接读取喜欢歌曲歌单详情并支持播放全部 / 单曲播放
+  - `Library` 与 `liked songs` 在未登录时会显示明确的登录引导，而不是空白占位
 - In progress:
-  - 按原版页面建立 parity 驱动的开发顺序，优先收口全局框架、首页、搜索、歌单和播放器
+  - 继续把用户相关页面从“基础可用”推进到更接近旧版的信息结构
 - Next:
-  - 对照旧版 `Navbar` / `Player` / 首页，梳理当前实现与原版在布局和交互上的具体差异
-  - 将当前已实现页面按 `1:1 已对齐`、`功能已到位但未对齐`、`未实现 / 未核对` 重新标记
-  - 开始按旧版顺序补全缺失路由：`/next`、`/new-album`、`/explore`、`/daily/songs`、`/artist/:id/mv`、`/library/liked-songs` 等
+  - 继续补旧版缺失路由与登录态相关页面
+  - 继续补 Library 的专辑、艺人、MV、播放历史等分区
+  - 评估是否把喜欢歌曲页继续向旧版歌单详情页样式收口
 - Blockers:
+  - 当前 `Library` 主要依赖本地持久化登录 cookie；如果尚未完成网易云登录，页面会停留在登录引导状态
   - 仓库当前缺少部分生成产物，导致全量 TypeScript 检查无法通过（如 `routeTree.gen`、Paraglide 运行时代码）
-  - 当前仍缺少旧版页面级的系统化截图 / 差异清单，需要在后续页面复刻中逐页补齐
-
-## 2026-03-07（此前实现记录，需按 parity 重新验收）
-
-- Done:
-  - 分析了 `YesPlayMusic` 旧项目的依赖、路由、状态和 API 边界
-  - 明确本轮只做 Web，不考虑 Electron
-  - 输出了依赖替换分析文档
-  - 建立了 `docs/` 协作机制并写入 `AGENTS.md`
-  - 完成 Phase 0 基础设施：请求层、浏览器存储工具、Dexie db 骨架、Zustand store 骨架
-  - 新增 `.env.example` 与 `vite-env.d.ts` 基础声明
-  - 完成应用壳与核心业务路由骨架：首页、搜索、歌单、专辑、艺人、Library、Settings、Login、MV
-  - 修复 `PlayerDock` 的 `zustand` selector 无限更新问题
-  - 完成 Phase 2 只读接口迁移：推荐歌单、榜单、新专辑、歌手榜、歌单详情、专辑详情、艺人详情、搜索
-  - 首页、歌单页、专辑页、艺人页、搜索页已接入 loader
-  - 新增 `vitest.config.ts`，补充播放器 store 与曲目可播放性测试并通过
-  - 按仓库约定将新增测试移动到根目录 `test/`
-  - 修复服务端 Netease API 环境变量读取逻辑，并补充 `.env.local` 中的 Netease API 变量
-  - 修复首页歌手榜数据结构兼容问题，兼容 `data.list.artists` 与数组两种返回格式
-  - 修复首页其余区块的数组兜底，避免接口返回结构异常时再触发 `.slice()` 报错
-  - 修复搜索页在没有 search 参数时读取 `q` 报错的问题
-  - 修复综合搜索返回结构兼容问题，支持 `result.song.songs` / `result.artist.artists` 等嵌套结果
-  - 修复搜索路由未声明 `loaderDeps` 导致切换 `?q=` 后 loader 不重跑、页面始终显示空结果的问题
-  - 为搜索页补齐关键词输入、综合/分类切换与分类分页，支持直接通过页面交互发起搜索
-  - 启动 `track` 模块迁移：新增歌曲详情/歌词/播放地址 API，详情页与搜索页已可把歌曲加入底部播放器
-  - 后端连通性问题已解决
-  - 完成播放器核心第一批实现：队列、播放/暂停、切歌、循环、乱序、持久化、歌词解析、播放按钮与队列构建工具
-  - 完成播放器核心第二批实现：`howler` 真实音频播放、播放/暂停、切歌、音量同步和进度展示
-  - 完成播放器控制层第一批交互：进度拖动、循环模式切换、随机播放切换、音量调节百分比展示、歌词预览滚动
-  - 修复 `player-store` 在切歌 / seek 时的时长与进度边界处理
-  - 完成首页、搜索页、歌单页、专辑页、艺人页及根路由的共享错误态接入
-  - 完成歌词体验第一批实现：展开歌词面板、当前句高亮、翻译歌词展示
-  - 在 `track/lib/lyrics.ts` 中抽出当前歌词定位与预览 helper，并补充歌词单测
-  - 完成艺人页新功能第一批实现：接入 `artist/album`，支持展示最新专辑卡片与真实专辑列表
-- In progress:
-  - 上述实现仍需全部回到“与原版对齐”的标准下重新验收
-- Next:
-  - 停止继续把“新功能完成数”当成主线指标，改为按原版页面做差异清单和收口
-- Blockers:
-  - 目前还没有逐页 parity 标记，因此这些完成项不能直接视为复刻完成
