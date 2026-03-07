@@ -155,6 +155,14 @@ export default function PlayerDock() {
       return
     }
 
+    if (queueSource.to === '/new-album') {
+      void navigate({
+        to: '/new-album',
+        search: { area: queueSource.newAlbumArea ?? 'EA', page: 1 },
+      })
+      return
+    }
+
     if (queueSource.to === '/search' && queueSource.search) {
       void navigate({ to: '/search', search: queueSource.search })
       return

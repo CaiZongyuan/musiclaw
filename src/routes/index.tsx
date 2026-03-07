@@ -41,8 +41,21 @@ function HomeSectionHeader({
   return (
     <div className="home-row__header">
       <h2 className="home-row__title">{title}</h2>
-      {moreTo ? (
-        <Link to={moreTo} search={moreSearch} className="home-row__more">
+      {moreTo === '/explore' ? (
+        <Link
+          to="/explore"
+          search={{ category: moreSearch?.category ?? '推荐歌单' }}
+          className="home-row__more"
+        >
+          See more
+        </Link>
+      ) : null}
+      {moreTo === '/new-album' ? (
+        <Link
+          to="/new-album"
+          search={{ area: 'EA', page: 1 }}
+          className="home-row__more"
+        >
           See more
         </Link>
       ) : null}

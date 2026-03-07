@@ -1,5 +1,27 @@
 # Progress
 
+## 2026-03-07（第十六轮功能收口：New Album 页面回迁）
+
+- Done:
+  - `src/routes/new-album.tsx` 已从 `RoutePlaceholder` 说明页替换为真实新专辑列表页，补上大标题、区域切换、分页控制和专辑卡片网格
+  - 已修复 `New Album` 卡片直播放时底部播放器专辑封面为空的问题：直播放队列现在会把专辑摘要里的封面补写回曲目 `album/al.picUrl`
+  - 新增 `src/features/album/lib/new-album.ts`，统一管理 `New Album` 的区域参数、搜索参数归一化、来源语义和专辑副标题格式化
+  - `src/features/album/api/album-api.ts` 已扩展 `newAlbumsPageQueryOptions`，支持按 `area + offset + limit` 拉取新专辑分页数据
+  - 新专辑卡片已支持两条主链路：进入 `/album/:id` 专辑详情，以及从卡片直接播放整张专辑
+  - 播放器来源语义已补到 `New Album`：从新专辑卡片播放后，底部播放器来源可回到 `/new-album?area=...`
+  - `src/components/app/player-dock.tsx` 与 `src/features/player/stores/player-store.ts` 已扩展 `/new-album` 来源跳转能力
+  - `src/styles.css` 已新增 `New Album` 页面与卡片样式，不再沿用说明页视觉
+  - 新增 `test/lib/new-album.test.ts`
+  - 已运行 `./node_modules/.bin/tsc --noEmit`，当前 TypeScript 校验通过
+  - 已运行 `bunx vitest run test/lib/new-album.test.ts test/lib/player-track.test.ts test/stores/player-store.test.ts --config vitest.config.ts`，当前 3 个测试文件共 17 个测试全部通过
+- In progress:
+  - 等待真实浏览器手测，确认区域切换、分页、卡片直播放和播放器来源回跳都稳定
+- Next:
+  - 根据手测结果继续微调 `New Album` 的卡片密度、按钮层级和移动端间距
+  - 若这轮通过，继续回头收剩余主路径页的视觉细节与播放器 parity
+- Blockers:
+  - 当前 `New Album` 已恢复主路径，但仍比原版多了一层区域筛选 / 分页语义；如果后续要追更细 parity，可再评估是否改回更接近原版的单页长列表节奏
+
 ## 2026-03-07（第十五轮文档校准：中英文 README 同步）
 
 - Done:

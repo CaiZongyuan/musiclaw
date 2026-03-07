@@ -26,9 +26,11 @@ export interface PlayerQueueSource {
     | '/daily/songs'
     | '/library/liked-songs'
     | '/explore'
+    | '/new-album'
     | '/search'
   params?: { id: string }
   exploreCategory?: string
+  newAlbumArea?: string
   search?: {
     q: string
     type: number

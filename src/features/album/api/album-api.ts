@@ -61,11 +61,23 @@ export const getAlbumDetail = createServerFn({ method: 'GET' })
   }))
   .handler(async ({ data }) => fetchAlbumDetail(data.id))
 
-export function newAlbumsQueryOptions(limit = 12) {
+export function newAlbumsPageQueryOptions(options?: {
+  limit?: number
+  offset?: number
+  area?: string
+}) {
+  const limit = options?.limit ?? 12
+  const offset = options?.offset ?? 0
+  const area = options?.area ?? 'ALL'
+
   return queryOptions({
-    queryKey: ['home', 'new-albums', limit],
-    queryFn: () => getNewAlbums({ data: { limit } }),
+    queryKey: ['album', 'new', limit, offset, area],
+    queryFn: () => getNewAlbums({ data: { limit, offset, area } }),
   })
+}
+
+export function newAlbumsQueryOptions(limit = 12) {
+  return newAlbumsPageQueryOptions({ limit })
 }
 
 export function albumDetailQueryOptions(id: string | number) {
