@@ -5,7 +5,7 @@ import {
 } from '#/features/player/lib/player-track'
 import type { PlayerTrack, PlayerQueueSource } from '#/features/player/stores/player-store'
 
-export const NEW_ALBUM_PAGE_SIZE = 24
+export const NEW_ALBUM_PAGE_SIZE = 25
 export const DEFAULT_NEW_ALBUM_AREA = 'EA'
 
 export const NEW_ALBUM_AREA_OPTIONS = [
