@@ -246,11 +246,10 @@ function SettingsRoute() {
         <div className="settings-hero__copy">
           <p className="island-kicker mb-3">Settings</p>
           <h1 className="display-title m-0 text-4xl font-bold text-[var(--sea-ink)] sm:text-5xl">
-            把播放器、歌词和网络细节收拢到一页
+            播放器、歌词与网络设置
           </h1>
           <p className="settings-hero__description mt-4">
-            这里承接 YesPlayMusic Web 里最常用的几个设置入口：主题、音质、歌词字号、缓存与网络参数。
-            当前这页已经能直接驱动全局主题和本地持久化设置，不再是占位骨架。
+            在这里调整主题、音质、歌词字号、缓存与网络参数。
           </p>
           <div className="settings-hero__pills">
             <span className="detail-stat-pill">当前主题：{activeThemeLabel}</span>
@@ -373,11 +372,11 @@ function SettingsRoute() {
         <SettingsSection
           icon={<Database size={18} />}
           title="缓存与网络"
-          description="这部分收口本地缓存容量、realIP 和代理设置，方便切换不同网络环境。"
+          description="在这里管理本地缓存容量、realIP 和代理设置。"
         >
           <SettingsRow
             label="缓存上限"
-            hint="当前主要用于约束后续本地缓存策略，先把入口保留到位。"
+            hint="用于控制本地缓存上限。"
             control={
               <select
                 value={String(cacheLimitMb)}
@@ -432,7 +431,7 @@ function SettingsRoute() {
           />
           <SettingsRow
             label="代理协议"
-            hint="给后续代理配置留出和原版接近的参数入口。"
+            hint="设置代理地址和端口。"
             control={
               <select
                 value={proxyConfig.protocol}

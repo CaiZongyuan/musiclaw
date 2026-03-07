@@ -211,19 +211,19 @@ export default function AccountLoginScreen() {
       {
         key: 'qr' as const,
         title: '二维码登录',
-        description: '与旧版一致，优先保留网易云 APP 扫码登录链路。',
+        description: '推荐使用网易云音乐 APP 扫码登录。',
         icon: QrCode,
       },
       {
         key: 'phone' as const,
         title: '手机号登录',
-        description: '输入区号、手机号与密码，直接写入本地账号态。',
+        description: '输入区号、手机号与密码即可登录。',
         icon: Smartphone,
       },
       {
         key: 'email' as const,
         title: '邮箱登录',
-        description: '保留旧版账号登录分支，便于对齐 YesPlayMusic 路径。',
+        description: '登录后可使用完整的个人音乐库与推荐内容。',
         icon: Mail,
       },
     ],
@@ -300,7 +300,7 @@ export default function AccountLoginScreen() {
             登录网易云账号
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--sea-ink-soft)] sm:text-base">
-            这一页对齐旧版 `/login/account`，支持二维码、手机号和邮箱三种账号登录方式。
+            支持二维码、手机号和邮箱三种方式登录。
           </p>
         </div>
 

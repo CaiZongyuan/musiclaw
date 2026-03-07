@@ -185,7 +185,7 @@ function NewAlbumRoute() {
             ))}
           </div>
           <p className="new-album-toolbar__hint">
-            当前已进入稳定阶段，后续只保留零碎视觉微调，可直接进入专辑详情或播放整张专辑。
+            可直接进入专辑详情或播放整张专辑。
           </p>
         </div>
       </header>

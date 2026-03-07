@@ -42,7 +42,7 @@ function LastfmCallbackRoute() {
     if (!token.trim()) {
       setState({
         status: 'missing',
-        message: '连接失败，请重试或联系开发者（无 Token）。',
+        message: '连接失败，请重试。',
       })
       return
     }
@@ -73,7 +73,7 @@ function LastfmCallbackRoute() {
           message:
             error instanceof Error
               ? `连接失败：${error.message}`
-              : '连接失败，请重试或联系开发者。',
+              : '连接失败，请重试。',
         })
       }
     }
@@ -122,7 +122,7 @@ function LastfmCallbackRoute() {
         </div>
         {state.status === 'success' ? (
           <p className="mt-6 text-xs text-[var(--sea-ink-soft)]">
-            当前回调页会把会话写入浏览器本地存储，供后续设置页或播放器集成读取。
+            你现在可以返回应用，继续使用 Last.fm 相关功能。
           </p>
         ) : null}
       </section>

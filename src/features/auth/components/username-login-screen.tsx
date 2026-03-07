@@ -131,7 +131,7 @@ export default function UsernameLoginScreen() {
             查找用户名进入音乐库
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--sea-ink-soft)] sm:text-base">
-            对齐旧版 `/login/username`。该模式只写入公开用户资料，不持有账号 cookie，因此更适合只读浏览。
+            通过用户名搜索公开资料，进入公开音乐库。
           </p>
         </div>
 

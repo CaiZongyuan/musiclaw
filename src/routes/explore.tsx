@@ -267,7 +267,7 @@ function ExploreRoute() {
           <p className="explore-hero__eyebrow">Explore</p>
           <h1 className="explore-hero__title">发现</h1>
           <p className="explore-hero__description">
-            这一页已经从占位页回到原版的分类发现结构：上方切分类，下方看歌单与榜单，并且可直接从卡片播放。
+            按分类浏览歌单与榜单，也可以直接从卡片开始播放。
           </p>
         </div>
         <div className="explore-hero__meta">
@@ -340,10 +340,10 @@ function ExploreRoute() {
             <h2 className="explore-results__title">{activeCategory}</h2>
             <p className="explore-results__description">
               {activeCategory === '推荐歌单'
-                ? '保留原版推荐歌单入口和文案语义。'
+                ? '为你推荐值得先听的歌单。'
                 : activeCategory === '排行榜'
-                  ? '这里显示榜单更新频率，不再混成普通歌单列表。'
-                  : '继续沿用原版 Explore 的分类歌单浏览路径。'}
+                  ? '查看当前热门榜单与更新频率。'
+                  : '按分类继续浏览更多歌单。'}
             </p>
           </div>
           {(activeCategory === '推荐歌单' || activeCategory === '排行榜') && playlists.length > 0 ? (

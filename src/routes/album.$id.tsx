@@ -158,7 +158,7 @@ function AlbumRoute() {
             {data.album.company ? <span className="detail-stat-pill">{data.album.company}</span> : null}
           </div>
           <p className="detail-hero__description">
-            {data.album.description || '专辑页已补回更多附加信息区、按钮组与同艺人更多发行，列表密度也继续向原版靠拢。'}
+            {data.album.description || '在这里查看专辑信息、收录曲目与更多发行。'}
           </p>
           <div className="detail-hero__actions detail-hero__actions--wrap">
             <button
@@ -190,7 +190,7 @@ function AlbumRoute() {
       <section className="detail-section">
         <div className="detail-section__header">
           <h2 className="detail-section__title">附加信息</h2>
-          <span className="detail-section__count">补回原版里的信息区节奏</span>
+          <span className="detail-section__count">发行信息与专辑资料</span>
         </div>
         <div className="detail-info-grid">
           <article className="detail-info-card">
@@ -203,7 +203,7 @@ function AlbumRoute() {
           <article className="detail-info-card">
             <p className="detail-info-card__kicker">Runtime</p>
             <p className="detail-info-card__value">{formatAlbumRuntime(tracks)}</p>
-            <p className="detail-info-card__meta">总时长按当前已加载曲目聚合。</p>
+            <p className="detail-info-card__meta">按当前曲目统计总时长。</p>
           </article>
           <article className="detail-info-card">
             <p className="detail-info-card__kicker">Tracks</p>
@@ -213,7 +213,7 @@ function AlbumRoute() {
           <article className="detail-info-card detail-info-card--wide">
             <p className="detail-info-card__kicker">Label</p>
             <p className="detail-info-card__meta detail-info-card__meta--body">
-              {data.album.company || '当前接口没有返回版权公司信息。'}
+              {data.album.company || '暂无唱片公司信息。'}
             </p>
           </article>
         </div>

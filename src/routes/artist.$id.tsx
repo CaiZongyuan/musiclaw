@@ -171,13 +171,13 @@ function ArtistRoute() {
       <section className="detail-section">
         <div className="detail-section__header">
           <h2 className="detail-section__title">更多信息</h2>
-          <span className="detail-section__count">和原版一样把艺人信息拆成更清晰的节奏</span>
+          <span className="detail-section__count">热门歌曲、简介与发行信息</span>
         </div>
         <div className="detail-info-grid">
           <article className="detail-info-card">
             <p className="detail-info-card__kicker">Songs</p>
             <p className="detail-info-card__value">{detail.artist.musicSize ?? tracks.length}</p>
-            <p className="detail-info-card__meta">热门歌曲和完整曲库会继续围绕这里收口。</p>
+            <p className="detail-info-card__meta">先听热门歌曲，再继续浏览更多内容。</p>
           </article>
           <article className="detail-info-card">
             <p className="detail-info-card__kicker">Albums</p>
@@ -194,7 +194,7 @@ function ArtistRoute() {
           <article className="detail-info-card detail-info-card--wide">
             <p className="detail-info-card__kicker">Brief</p>
             <p className="detail-info-card__meta detail-info-card__meta--body">
-              {description || '当前接口没有返回更多简介，后续可以继续接入更完整的艺人介绍接口。'}
+              {description || '暂时没有更多艺人简介。'}
             </p>
           </article>
         </div>

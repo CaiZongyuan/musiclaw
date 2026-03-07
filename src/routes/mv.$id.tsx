@@ -10,7 +10,7 @@ function MvRoute() {
     <RoutePlaceholder
       eyebrow="MV"
       title={`MV 播放页 #${id}`}
-      description="MV 会在后续阶段再接入，届时再决定是否引入 plyr。当前先把 Web 路由骨架和迁移目标占住。"
+      description="暂未提供 MV 播放，请稍后再试。"
     />
   )
 }

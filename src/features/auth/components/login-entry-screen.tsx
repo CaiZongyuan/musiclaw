@@ -16,7 +16,7 @@ const loginEntries = [
   {
     to: '/login/username' as const,
     title: '仅查找用户名',
-    description: '按旧版只读模式搜索用户并进入公开音乐库，不写入账号 cookie。',
+    description: '搜索用户并进入公开音乐库，不会影响当前账号数据。',
     icon: Search,
   },
 ]
@@ -91,7 +91,7 @@ export default function LoginEntryScreen() {
             选择登录方式
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--sea-ink-soft)] sm:text-base">
-            `/login` 现在恢复成旧版分流入口。账号登录用于完整功能，用户名模式用于只读浏览公开音乐库。
+            账号登录可使用完整功能，用户名模式适合浏览公开内容。
           </p>
         </div>
 
@@ -116,9 +116,9 @@ export default function LoginEntryScreen() {
               <UserRound size={18} />
             </span>
             <div>
-              <p className="m-0 text-sm font-semibold text-[var(--sea-ink)]">旧版登录路径已恢复</p>
+              <p className="m-0 text-sm font-semibold text-[var(--sea-ink)]">也可以直接访问登录分支</p>
               <p className="mt-1 text-sm leading-6 text-[var(--sea-ink-soft)]">
-                你可以直接访问 `/login/account` 或 `/login/username`，路径结构与 YesPlayMusic Web 保持一致。
+                你也可以直接访问 `/login/account` 或 `/login/username`。
               </p>
             </div>
           </div>

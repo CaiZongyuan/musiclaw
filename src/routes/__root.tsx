@@ -36,7 +36,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'music-claw · YesPlayMusic Web Rewrite',
+        title: 'music-claw',
       },
     ],
     links: [

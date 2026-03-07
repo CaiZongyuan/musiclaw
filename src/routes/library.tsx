@@ -300,7 +300,7 @@ function LibraryRoute() {
               {profile?.nickname ?? 'My'} 的音乐库
             </h1>
             <p className="library-header__description mt-4 max-w-3xl text-sm leading-7 text-[var(--sea-ink-soft)] sm:text-base">
-              这一页已经把原版 Library 的几个关键节奏补回来了：上方保留喜欢的歌曲入口，下方恢复歌单筛选、收藏专辑 / 艺人、MV / 云盘分区入口和周 / 全部播放历史切换。
+              这里集中显示喜欢的歌曲、歌单、收藏与最近播放。
             </p>
             <div className="library-summary-pills mt-4">
               <span className="detail-stat-pill">喜欢歌曲 {likedSongsPlaylist?.trackCount ?? likedTracks.length} 首</span>
@@ -310,7 +310,7 @@ function LibraryRoute() {
             </div>
             {loginMode === 'username' ? (
               <div className="library-mode-note mt-4 rounded-[1rem] border border-[var(--line)] bg-[rgba(255,255,255,0.44)] px-4 py-3 text-sm text-[var(--sea-ink-soft)]">
-                当前是用户名只读模式：公开歌单与喜欢歌曲入口可用，收藏专辑、收藏艺人、MV、云盘和播放历史需要账号登录。
+                当前是当前为只读模式，部分收藏与历史内容需要登录账号后查看。
                 <div className="mt-3 flex flex-wrap gap-3">
                   <Link to="/login/account" className="app-chip">
                     切换账号登录
@@ -494,7 +494,7 @@ function LibraryRoute() {
               {!hasAccountSession ? (
                 <AccountOnlyState
                   title="收藏专辑需要账号登录"
-                  description="用户名只读模式下无法读取收藏专辑列表。使用 `/login/account` 登录后，这里会恢复成旧版的专辑分区。"
+                  description="登录账号后即可查看收藏专辑。"
                 />
               ) : likedAlbumsQuery.isLoading ? (
                 <div className="library-empty-state">正在加载收藏专辑…</div>
@@ -528,7 +528,7 @@ function LibraryRoute() {
               {!hasAccountSession ? (
                 <AccountOnlyState
                   title="收藏艺人需要账号登录"
-                  description="用户名只读模式下无法读取收藏艺人列表。账号登录后，这里会显示更接近旧版的艺人分区。"
+                  description="登录账号后即可查看收藏艺人。"
                 />
               ) : likedArtistsQuery.isLoading ? (
                 <div className="library-empty-state">正在加载收藏艺人…</div>
@@ -561,12 +561,12 @@ function LibraryRoute() {
               {!hasAccountSession ? (
                 <AccountOnlyState
                   title="收藏 MV 需要账号登录"
-                  description="旧版里的 MV 分区属于账号态内容。先切到账号登录，再继续接入实际收藏 MV 数据。"
+                  description="登录账号后可查看收藏内容。"
                 />
               ) : (
                 <LibraryPreviewState
-                  title="MV 分区已恢复到 Library 内"
-                  description="这一轮先把分区、标签和降级路径补齐，下一步再把收藏 MV 的真实接口接进来。"
+                  title="暂未开放"
+                  description="这个分区暂时不可用。"
                 />
               )}
             </section>
@@ -581,12 +581,12 @@ function LibraryRoute() {
               {!hasAccountSession ? (
                 <AccountOnlyState
                   title="云盘需要账号登录"
-                  description="用户名只读模式下不能读取云盘歌曲。账号登录后，这里会继续补成更接近原版的云盘分区。"
+                  description="登录账号后可查看个人云盘内容。"
                 />
               ) : (
                 <LibraryPreviewState
-                  title="云盘分区已回到 Library 主区块"
-                  description="当前先把旧版的分区结构和降级路径恢复出来，后续再接入真实云盘列表与上传动作。"
+                  title="暂未开放"
+                  description="这个分区暂时不可用。"
                 />
               )}
             </section>

@@ -85,7 +85,7 @@ function DailySongsRoute() {
         <RoutePlaceholder
           eyebrow="Daily Songs"
           title="正在同步今天的推荐歌曲"
-          description="首页 Daily Tracks 已接回真实数据，这里正在拉取当日推荐列表。"
+          description="正在拉取今天的推荐歌曲。"
         />
       </main>
     )
@@ -96,7 +96,7 @@ function DailySongsRoute() {
       <RoutePlaceholder
         eyebrow="Daily Songs"
         title="每日推荐"
-        description="这里已经接回账号态下的真实日推歌曲列表。你可以像旧版一样直接播放全部，或者把单曲加入“下一首”。"
+        description="今天的推荐歌曲已准备好，你可以直接播放全部，或把单曲加入“下一首”。"
         actions={
           playableDailyTracks.length > 0 ? (
             <PlayTrackButton

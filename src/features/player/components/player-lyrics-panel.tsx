@@ -106,7 +106,7 @@ export default function PlayerLyricsPanel({
           </div>
         ) : (
           <div className="player-dock__lyrics-empty">
-            当前歌曲暂无可显示的歌词，后续还可以继续补逐字和更多翻译细节。
+            当前歌曲暂无可显示的歌词。
           </div>
         )}
       </div>

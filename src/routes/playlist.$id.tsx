@@ -163,7 +163,7 @@ function PlaylistRoute() {
             </div>
           )}
           <p className="detail-hero__description">
-            {data.playlist.description || '歌单详情已继续补齐：附加信息区、按钮组、更多操作和更紧凑的曲目列表都已经回到页面里。'}
+            {data.playlist.description || '在这里查看歌单信息、搜索歌曲，并继续播放当前列表。'}
           </p>
           <div className="detail-hero__actions detail-hero__actions--wrap">
             <button
@@ -197,7 +197,7 @@ function PlaylistRoute() {
       <section className="detail-section">
         <div className="detail-section__header">
           <h2 className="detail-section__title">附加信息</h2>
-          <span className="detail-section__count">按钮组、标签和搜索都在这里收口</span>
+          <span className="detail-section__count">标签、搜索与常用操作</span>
         </div>
         <div className="detail-info-grid">
           <article className="detail-info-card">
@@ -223,7 +223,7 @@ function PlaylistRoute() {
               placeholder="搜索歌曲、艺人或专辑"
               className="detail-search-input"
             />
-            <p className="detail-info-card__meta">更接近原版的歌单内搜索节奏，适合长列表快速定位。</p>
+            <p className="detail-info-card__meta">输入关键词，快速定位歌单里的歌曲。</p>
           </article>
         </div>
       </section>

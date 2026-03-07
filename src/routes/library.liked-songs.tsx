@@ -197,7 +197,7 @@ function LikedSongsRoute() {
               我喜欢的音乐
             </h1>
             <p className="mt-4 text-sm leading-7 text-[var(--sea-ink-soft)] sm:text-base">
-              这一页现在会按歌单 `trackIds` 分页，并在“播放全部”时补齐整张喜欢歌单的曲目详情后再构建完整播放队列。
+              在这里浏览你喜欢的歌曲，也可以一键播放当前收藏。
             </p>
           </div>
 
