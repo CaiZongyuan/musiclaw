@@ -2056,9 +2056,34 @@ a {
   line-height: 1rem;
 }
 
+.player-dock__cover-button {
+  cursor: pointer;
+}
+
+.player-dock__cover-button:disabled {
+  cursor: default;
+}
+
 .player-dock__like-button {
   flex-shrink: 0;
 }
+
+.player-dock__text-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.player-dock__text-button:hover {
+  color: var(--lagoon-deep);
+}
+
+.player-dock__text-button:disabled {
+  cursor: default;
+}
+
 
 .player-dock__like-icon {
   color: var(--sea-ink-soft);

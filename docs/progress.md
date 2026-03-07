@@ -1,5 +1,21 @@
 # Progress
 
+## 2026-03-07（第九轮功能收口：播放器专辑/歌手跳转）
+
+- Done:
+  - 底部播放器当前歌曲区域已补回旧版常用跳转：点击封面或专辑名可进入专辑页，点击歌手名可进入艺人页
+  - `PlayerTrack` 已补充 `albumId` 与 `artistIds`，用于在播放态保留最基础的来源跳转信息
+  - `src/features/player/lib/player-track.ts` 已在歌曲映射时写入专辑与艺人 id
+  - 已运行 `./node_modules/.bin/tsc --noEmit`，当前 TypeScript 校验通过
+  - 已运行 `bunx vitest run test/lib/player-track.test.ts test/stores/player-store.test.ts`，当前 2 个测试文件共 13 个测试全部通过
+- In progress:
+  - 等待真实浏览器手测，确认播放器跳转行为与当前播放信息展示是否稳定
+- Next:
+  - 根据手测结果继续补播放器剩余 parity 细节，例如来源信息、按钮尺寸与更多旧版文案节奏
+- Blockers:
+  - 当前播放器仍未恢复“列表来源跳转”这类更完整的旧版播放来源语义；目前只补了专辑与艺人跳转
+
+
 ## 2026-03-07（第八轮功能收口：播放器喜欢按钮）
 
 - Done:

@@ -74,8 +74,7 @@ export default function PlayerDock() {
   )
   const [isLyricsOpen, setIsLyricsOpen] = useState(false)
 
-  const currentTrack =
-    queue.find((track) => track.id === currentTrackId) ?? null
+  const currentTrack = queue.find((track) => track.id === currentTrackId) ?? null
   const hasTrack = currentTrack !== null
 
   const { data: lyricData } = useQuery({
@@ -104,9 +103,10 @@ export default function PlayerDock() {
     durationSeconds > 0
       ? Math.min(progressSeconds, durationSeconds)
       : Math.max(progressSeconds, 0)
+  const artistNames = currentTrack?.artists ?? []
+  const artistIds = currentTrack?.artistIds ?? []
 
-  const VolumeIcon =
-    volume === 0 ? VolumeX : volume <= 0.5 ? Volume1 : Volume2
+  const VolumeIcon = volume === 0 ? VolumeX : volume <= 0.5 ? Volume1 : Volume2
 
   function toggleNextQueuePage() {
     if (location.pathname === '/next') {
@@ -117,6 +117,22 @@ export default function PlayerDock() {
     }
 
     void navigate({ to: '/next' })
+  }
+
+  function goToAlbum() {
+    if (!currentTrack?.albumId) {
+      return
+    }
+
+    void navigate({ to: '/album/$id', params: { id: String(currentTrack.albumId) } })
+  }
+
+  function goToArtist(artistId?: number) {
+    if (!artistId) {
+      return
+    }
+
+    void navigate({ to: '/artist/$id', params: { id: String(artistId) } })
   }
 
   return (
@@ -150,7 +166,13 @@ export default function PlayerDock() {
 
         <div className="player-dock__controls-grid">
           <div className="player-dock__playing-block">
-            <div className="player-dock__cover-shell">
+            <button
+              type="button"
+              onClick={goToAlbum}
+              className="player-dock__cover-shell player-dock__cover-button"
+              disabled={!currentTrack?.albumId}
+              aria-label={currentTrack?.albumName ? `Open album ${currentTrack.albumName}` : 'Open current album'}
+            >
               {currentTrack?.coverUrl ? (
                 <img
                   src={currentTrack.coverUrl}
@@ -163,16 +185,51 @@ export default function PlayerDock() {
                   {currentTrack ? currentTrack.name.slice(0, 1) : '♪'}
                 </span>
               )}
-            </div>
+            </button>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-[var(--sea-ink)]">
                 {currentTrack?.name ?? '还没有正在播放的歌曲'}
               </p>
               <p className="mt-1 truncate text-xs text-[var(--sea-ink-soft)]">
-                {currentTrack?.artists.join(', ') ?? '从首页、搜索页或详情页点击播放后会出现在这里'}
+                {currentTrack ? (
+                  artistNames.map((artistName, index) => {
+                    const artistId = artistIds[index]
+
+                    return artistId ? (
+                      <span key={`${artistId}-${artistName}`}>
+                        <button
+                          type="button"
+                          onClick={() => goToArtist(artistId)}
+                          className="player-dock__text-button"
+                        >
+                          {artistName}
+                        </button>
+                        {index < artistNames.length - 1 ? ', ' : ''}
+                      </span>
+                    ) : (
+                      <span key={`${artistName}-${index}`}>
+                        {artistName}
+                        {index < artistNames.length - 1 ? ', ' : ''}
+                      </span>
+                    )
+                  })
+                ) : (
+                  '从首页、搜索页或详情页点击播放后会出现在这里'
+                )}
               </p>
               <p className="mt-1 truncate text-[11px] text-[var(--sea-ink-soft)]/80">
-                {currentTrack?.albumName ?? '底部播放器正在继续向旧版结构收口'}
+                {currentTrack?.albumName ? (
+                  <button
+                    type="button"
+                    onClick={goToAlbum}
+                    className="player-dock__text-button"
+                    disabled={!currentTrack.albumId}
+                  >
+                    {currentTrack.albumName}
+                  </button>
+                ) : (
+                  '底部播放器正在继续向旧版结构收口'
+                )}
               </p>
               {lyricPreview.length && !isLyricsOpen ? (
                 <div className="mt-2 space-y-1">

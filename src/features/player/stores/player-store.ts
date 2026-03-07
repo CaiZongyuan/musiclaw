@@ -9,6 +9,8 @@ export interface PlayerTrack {
   id: number
   name: string
   artists: string[]
+  artistIds?: number[]
+  albumId?: number
   albumName?: string
   coverUrl?: string
   sourceUrl?: string

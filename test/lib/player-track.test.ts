@@ -18,6 +18,8 @@ describe('player track mapping', () => {
       id: 1,
       name: 'Track',
       artists: ['Artist'],
+      artistIds: [2],
+      albumId: 3,
       albumName: 'Album',
       coverUrl: 'cover.jpg',
       durationMs: 1000,
