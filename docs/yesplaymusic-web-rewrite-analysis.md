@@ -1,304 +1,134 @@
-# YesPlayMusic Web 重写依赖分析
+# YesPlayMusic Web 重写分析与复刻原则
 
-目标：把 `/root/Projects/Frontend/YesPlayMusic` 的 Vue 2 + Vue CLI Web 版本，迁移到当前这个 `TanStack Start + React 19 + Tailwind v4` 项目里。
+目标：把 `/root/Projects/Frontend/YesPlayMusic` 的 Vue 2 Web 版本迁移到当前 `TanStack Start` 仓库中，同时尽量保持 **原版功能、UI 结构与主要交互的一致性**。
 
-范围：**仅 Web 端**，本轮**不考虑 Electron**。
+范围：**仅 Web 端**，本轮**不考虑 Electron 专属能力**。
 
-## 1. 先说结论
+## 1. 核心判断
 
-当前项目 `music-claw` 已经有一套很新的基础设施，以下核心依赖**已经具备**：
+### 结论一：当前技术路线可以保留
 
-- `react` / `react-dom`
-- `@tanstack/react-start`
-- `@tanstack/react-router`
-- `@tanstack/react-query`
-- `tailwindcss` / `@tailwindcss/vite`
-- `better-auth`
-- `@inlang/paraglide-js`
-- `vitest`
-
-这意味着：
-
-1. **Vue 框架层依赖不需要迁移**，而是直接换成 TanStack Start 的路由、loader、server function、React 组件体系。
-2. **Electron 相关依赖全部先排除**。
-3. **旧项目里真正需要补装的，主要是播放器、缓存、二维码登录、日期工具，以及一个新的全局状态方案。**
-
-## 2. 旧项目依赖按“是否还需要”分类
-
-### A. 直接淘汰：Vue / Vue CLI 技术栈
-
-这些包是旧架构绑定，重写后不应该继续安装：
-
-- `vue`
-- `vue-router`
-- `vuex`
-- `vue-i18n`
-- `vue-clipboard2`
-- `vue-gtag`
-- `vue-slider-component`
-- `@vue/cli-plugin-babel`
-- `@vue/cli-plugin-eslint`
-- `@vue/cli-plugin-pwa`
-- `@vue/cli-plugin-vuex`
-- `@vue/cli-service`
-- `vue-template-compiler`
-- `register-service-worker`
-- `core-js`
-- `svg-sprite-loader`
-
-对应替换关系：
-
-- `vue-router` → `@tanstack/react-router`
-- `vuex` → `zustand`（推荐）或 React Context
-- `vue-i18n` → `@inlang/paraglide-js`
-- `vue-slider-component` → Shadcn `slider` 组件
-- `vue-clipboard2` → 浏览器原生 `navigator.clipboard`
-- `vue-gtag` → 先不装；后续按需要接 `gtag.js` 或 `react-ga4`
-- `register-service-worker` / PWA 插件 → 先不迁，后续再决定是否加 `vite-plugin-pwa`
-
-### B. Web 首阶段建议保留/替换为 React 友好方案
-
-这些是旧项目的**业务能力依赖**，Web 重写大概率还需要：
-
-| 旧依赖 | 用途 | React Web 建议 |
-| --- | --- | --- |
-| `axios` | API 请求 | **建议不装**，优先用 `fetch` + TanStack Start server functions |
-| `dexie` | IndexedDB 缓存 | **建议继续使用** |
-| `howler` | 音频播放 | **建议继续使用** |
-| `qrcode` | 二维码登录渲染 | **建议继续使用** |
-| `dayjs` | 日期处理 | **建议继续使用** |
-| `js-cookie` | Cookie 读写 | 可装；也可以自己封装 cookie util |
-| `plyr` | MV / 视频播放器 | 可装，MV 页面再接入 |
-| `color` | 颜色处理 | 可选，歌词页/封面主题色时再装 |
-| `node-vibrant` | 封面取色 | 可选，歌词背景/卡片渐变时再装 |
-| `change-case` | 文本格式转换 | 可选，确认有实际需求再装 |
-| `lodash` | 工具函数 | **建议不用整包**，尽量改为原生 API；必要时按子模块补 |
-| `md5` / `crypto-js` | 哈希 | **优先不用**，能否改为 Web Crypto / 服务端实现后再定 |
-| `nprogress` | 页面加载进度条 | 可选，TanStack Router 自带 pending 能力，先不急着装 |
-
-### C. 服务端能力：是否自带网易云 API
-
-这部分不是 React 替换，而是**后端边界选择**：
-
-| 旧依赖 | 用途 | Web 重写建议 |
-| --- | --- | --- |
-| `@neteaseapireborn/api` | 网易云接口适配 | **推荐保留为服务端依赖**，通过 TanStack Start server functions 暴露给前端 |
-| `express` | 本地 API 容器 | **不需要**，由 TanStack Start 取代 |
-| `express-http-proxy` | 本地代理 | **不需要**，改成 server function / route handler |
-| `express-fileupload` | 上传接口 | 只有云盘上传要做时再评估 |
-
-这里有两种路线：
-
-1. **外部已有 Netease API 服务**：那你现在甚至可以先不装 `@neteaseapireborn/api`。
-2. **希望新项目自己承载 API**：那建议后续安装 `@neteaseapireborn/api`，但只在服务端代码里使用，不要在浏览器端直接引用。
-
-### D. Electron 专属：本轮全部排除
-
-这些包在 Web 第一阶段都**不要装**：
-
-- `electron`
-- `electron-builder`
-- `electron-context-menu`
-- `electron-debug`
-- `electron-devtools-installer`
-- `electron-icon-builder`
-- `electron-is-dev`
-- `electron-log`
-- `electron-store`
-- `electron-updater`
-- `discord-rich-presence`
-- `mpris-service`
-- `pac-proxy-agent`
-- `tunnel`
-- `x11`
-- `@unblockneteasemusic/rust-napi`
-- `vue-cli-plugin-electron-builder`
-
-## 3. 当前项目还缺什么
-
-如果按 YesPlayMusic 的 Web 核心功能来做，当前项目最值得优先补的是：
-
-### P0：我建议你先安装
-
-- `zustand`
-- `dexie`
-- `howler`
-- `qrcode`
-- `dayjs`
+`TanStack Start + React 19 + TanStack Router + TanStack Query + Tailwind v4` 依然适合作为承载层。
 
 原因：
 
-- `zustand`：旧项目的 `vuex` 不只是页面状态，还承担了播放器、设置、登录态、toast、modal 等全局状态。只靠 React Context 会比较快失控，`zustand` 更适合做播放器和设置中心。
-- `dexie`：旧项目本来就把歌词、专辑、音频缓存放 IndexedDB，这个能力 Web 端值得保留。
-- `howler`：旧项目播放器核心依赖，React 重写时依然适合。
-- `qrcode`：登录页二维码能力直接要用。
-- `dayjs`：旧项目多处使用，迁移成本最低。
+- SSR、路由、数据加载与后续部署能力都够用
+- 当前仓库已经完成一批基础设施，不需要推倒重来
+- 播放器、缓存、请求代理等业务能力也能在该栈里实现
 
-### P1：按页面推进再安装
+### 结论二：当前真正的问题不是技术，而是目标函数漂移
 
-- `js-cookie`
-- `plyr`
-- `color`
-- `node-vibrant`
+目前更像是在“参考 YesPlayMusic 做一个功能相近的新站”，而不是“把 YesPlayMusic Web 端原样搬到新技术栈”。
 
-说明：
+具体表现：
 
-- `js-cookie`：如果你想快速兼容旧的 cookie 登录逻辑，装它最省事。
-- `plyr`：MV 页面时再补。
-- `color` + `node-vibrant`：歌词页、FM 卡片、封面主色提取时再补。
+- 更关注模块是否实现，而不是页面是否对齐
+- 更关注 loader / store / engine 是否成立，而不是旧版交互路径是否保留
+- 更关注局部体验增强，而不是旧版页面的完整收口
 
-### P2：只有在你选择“项目内承载网易云 API”时再安装
+### 结论三：旧仓库源码应视为唯一产品规范
 
-- `@neteaseapireborn/api`
+后续开发默认以旧仓库以下内容为产品基线：
 
-## 4. 我不建议你现在装的包
+- `src/router/index.js`
+- `src/App.vue`
+- `src/components/Navbar.vue`
+- `src/components/Player.vue`
+- `src/views/*.vue`
 
-这些要么已经被当前项目替代，要么应该等后面明确需求再加：
+新仓库的自由度只存在于“如何实现”，不应存在于“产品长什么样”。
 
-- 所有 `vue*` / `@vue/*`
-- 所有 `electron*`
-- `express`
-- `express-http-proxy`
-- `express-fileupload`
-- `lodash`（整包）
-- `md5`
-- `crypto-js`
-- `register-service-worker`
-- `core-js`
-- `svg-sprite-loader`
+## 2. 旧版 Web 的实际产品边界
 
-## 5. 一个重要判断：`better-auth` 这轮先不要当主线
+### 1. 旧版路由边界
 
-当前项目已经有 `better-auth`，但 **YesPlayMusic 的登录体系本质上不是“你自己的站内账号体系”**，而是：
+旧版 Web 不是只有首页、搜索、歌单、专辑、艺人这些基础页，还包含：
 
-- 网易云账号登录
-- Cookie 持有与刷新
-- 二维码登录
-- 用户名/账号两种登录路径
+- 登录分流：`/login`、`/login/username`、`/login/account`
+- 播放列表相关：`/next`
+- 搜索分类页：`/search/:keywords/:type`
+- 内容发现页：`/new-album`、`/explore`
+- 个人库相关：`/library`、`/library/liked-songs`
+- 日推：`/daily/songs`
+- MV 相关：`/mv/:id`、`/artist/:id/mv`
+- 回调页：`/lastfm/callback`
 
-所以 Web 第一阶段建议：
+因此，“当前核心页能打开”并不等于接近旧版。
 
-- **不要急着把登录迁到 `better-auth`**。
-- 先把“网易云登录态”当成业务态处理：cookie + profile + login mode。
-- 如果以后你想给自己的网站再加“站内账号”，再启用 `better-auth` 也不迟。
+### 2. 旧版全局体验边界
 
-换句话说，`better-auth` 现在可以**保留依赖但暂不接入主流程**。
+旧版产品体验并不是一组孤立页面，而是一套统一壳体：
 
-## 6. 推荐的新状态划分
+- 左侧导航栏负责主要入口切换
+- 中间内容区承担滚动与页面缓存
+- 底部播放器是全局常驻核心
+- 歌词页是全局层，不只是播放器附属小窗
+- Toast、弹窗、列表来源跳转等都属于产品体验的一部分
 
-旧项目 `vuex` 里混了 4 类状态，React 重写时建议拆开：
+如果这些全局元素和旧版差距过大，即使单页数据正确，也不能算 1:1 复刻。
 
-1. **路由级数据**
-   - 用 TanStack Router `loader`
-   - 例如：歌单详情、专辑详情、艺人详情、搜索结果
+## 3. 允许改变的部分
 
-2. **服务端请求缓存**
-   - 用 TanStack Query
-   - 例如：用户信息、喜欢列表、播放历史、每日推荐
+这些内容可以和旧版实现不同，只要用户可感知结果尽量一致：
 
-3. **客户端全局 UI / Player 状态**
-   - 用 `zustand`
-   - 例如：当前播放队列、播放模式、歌词开关、toast、modal、settings
+- Vue 改 React
+- Vuex 改 Zustand
+- 页面数据获取改为 `loader` / `server functions`
+- 组件拆分方式变化
+- 类型系统与目录结构变化
 
-4. **持久化缓存**
-   - 用 `localStorage` + `Dexie`
-   - 例如：设置、播放器快照、歌词缓存、专辑缓存、音频缓存
+## 4. 不应轻易改变的部分
 
-## 7. 推荐安装顺序
+这些是复刻主线，应尽量保持与旧版一致：
 
-如果你希望我后面按最稳的路径继续推进，建议你先安装：
+- 路由覆盖范围
+- 导航层级与入口顺序
+- 首页区块的排列方式
+- 搜索页和搜索分类页的切换关系
+- 歌单 / 专辑 / 艺人详情页的页面骨架
+- 底部播放器的布局、按钮集合和主交互路径
+- 歌词入口与展示方式
+- 登录页入口分叉与用户路径
+- Library 的信息结构
 
-```bash
-bun add zustand dexie howler qrcode dayjs
-```
+## 5. 当前仓库的偏航点
 
-如果你倾向于尽快兼容旧登录和 MV 能力，再补：
+结合当前 `docs/progress.md` 与代码现状，可以确认以下偏航：
 
-```bash
-bun add js-cookie plyr color node-vibrant
-```
+1. 已把“基础设施完成度”误当成“复刻完成度”
+2. 已开始做部分扩展交互，但缺少逐页 parity 表
+3. 当前路由范围仍小于旧版完整路由树
+4. 存在 `about`、`demo/*` 等非原版页面，容易分散注意力
+5. `progress.md` 当前更像开发流水账，而不是对照旧版的复刻状态板
 
-如果你决定把网易云 API 也直接放进当前项目：
+## 6. 新的工作准则
 
-```bash
-bun add @neteaseapireborn/api
-```
+后续开发统一遵循以下准则：
 
-如果你打算过渡期复用旧 SCSS 资源：
+1. **先旧后新**：先看旧仓库页面，再决定当前页面该怎么写
+2. **先对照后实现**：先列差异，再补代码
+3. **先收口主路径**：优先补齐首页、搜索、歌单、专辑、艺人、播放器、登录、Library
+4. **先 parity 后优化**：原版没完成前，不优先做新增体验
+5. **完成必须可对照**：每个页面要能明确说明“和旧版还有什么差异”
 
-```bash
-bun add -d sass
-```
+## 7. 当前最合理的推进方式
 
-## 8. 路由/页面迁移优先级建议
+建议以“壳体 → 核心页 → 次级页 → 边缘能力”的顺序推进：
 
-建议按下面顺序重写，这样最容易尽快跑通：
+1. 对齐 `App` / `Navbar` / `Player` / `Lyrics`
+2. 对齐首页
+3. 对齐搜索与搜索分类
+4. 对齐歌单 / 专辑 / 艺人详情
+5. 对齐登录与 Library
+6. 对齐 `next`、`new-album`、`explore`、MV 与日推
+7. 最后处理缓存、性能和边缘回调
 
-1. `home`
-2. `playlist/:id`
-3. `album/:id`
-4. `artist/:id`
-5. `search`
-6. `login` / `login/account`
-7. `library`
-8. `settings`
-9. `mv`
-10. `lyrics`
+## 8. 对当前仓库的判断
 
-原因：前 5 个页面可以先证明“内容浏览 + 基础播放链路”跑通，后面再补登录、收藏、设置和 MV。
+当前仓库不是方向错误，而是 **完成定义需要重置**。
 
-## 9. 迁移计划
+也就是说：
 
-### 阶段 1：基础设施定型
-
-- 确认 API 边界：外部 Netease API，还是项目内 server functions 包装
-- 安装首批依赖：`zustand`、`dexie`、`howler`、`qrcode`、`dayjs`
-- 定义新的目录边界：`routes`、`features/player`、`features/auth`、`features/music-api`
-
-### 阶段 2：状态与数据层重建
-
-- 用 `zustand` 重建播放器 store 与 settings store
-- 用 TanStack Query 重建用户信息、喜欢列表、播放历史查询
-- 用 server functions 封装旧 `src/api/*.js` 能力
-
-### 阶段 3：页面骨架迁移
-
-- 先迁 `home`、`playlist`、`album`、`artist`、`search`
-- 把 Vue Router 路由映射成 `src/routes/` 文件路由
-- 替换旧的 `keepAlive/savePosition` 逻辑为滚动恢复与 query 缓存
-
-### 阶段 4：播放器闭环
-
-- 接入 `howler`
-- 迁移播放队列、播放模式、上一首/下一首、进度同步
-- 用 `Dexie` 接回歌词/专辑/音频缓存
-
-### 阶段 5：登录与用户能力
-
-- 迁移二维码登录、cookie 登录、profile 拉取
-- 迁移用户歌单、喜欢歌曲、每日推荐、云盘等能力
-- 明确 `better-auth` 暂不进入主登录流程
-
-### 阶段 6：增强体验
-
-- 补 `mv`、`lyrics`、主题色提取、快捷反馈
-- 评估是否恢复 PWA
-- 最后再考虑 Electron 复用策略
-
-## 10. 下一步建议
-
-如果只做“第一轮最小可用 Web 重写”，我建议你**现在先安装这一组**：
-
-```bash
-bun add zustand dexie howler qrcode dayjs js-cookie
-```
-
-这是因为它们能覆盖：
-
-- 播放器
-- 本地缓存
-- 二维码登录
-- 日期处理
-- Cookie 登录兼容
-
-而 `plyr`、`node-vibrant`、`color`、`@neteaseapireborn/api` 都可以后置。
+- 现有 API、store、播放器等工作不是白做
+- 但它们必须回到“服务原版复刻”的框架下重新验收
+- 从现在开始，任何“Done”都必须能回答：它和旧版相比已经对齐到什么程度

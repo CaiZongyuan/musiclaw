@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
+import { useLocation, useNavigate } from '@tanstack/react-router'
 import {
+  ChevronUp,
+  ListMusic,
   Pause,
   Play,
   Repeat,
@@ -7,7 +10,9 @@ import {
   Shuffle,
   SkipBack,
   SkipForward,
+  Volume1,
   Volume2,
+  VolumeX,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
@@ -27,6 +32,8 @@ function formatTime(value: number) {
 }
 
 export default function PlayerDock() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const {
     currentTrackId,
     cycleRepeatMode,
@@ -95,9 +102,23 @@ export default function PlayerDock() {
       ? Math.min(progressSeconds, durationSeconds)
       : Math.max(progressSeconds, 0)
 
+  const VolumeIcon =
+    volume === 0 ? VolumeX : volume <= 0.5 ? Volume1 : Volume2
+
+  function toggleNextQueuePage() {
+    if (location.pathname === '/next') {
+      if (typeof window !== 'undefined') {
+        window.history.back()
+      }
+      return
+    }
+
+    void navigate({ to: '/next' })
+  }
+
   return (
-    <div className="player-dock border-t border-[var(--line)] bg-[color-mix(in_oklab,var(--surface-strong)_86%,black_14%)] px-4 py-3 backdrop-blur-xl">
-      <div className="page-wrap flex flex-col gap-4">
+    <div className="player-dock border-t border-[var(--line)] bg-[color-mix(in_oklab,var(--surface-strong)_88%,black_12%)] px-4 pt-2 pb-3 backdrop-blur-xl">
+      <div className="page-wrap flex flex-col gap-3">
         {currentTrack && isLyricsOpen ? (
           <PlayerLyricsPanel
             currentTrack={currentTrack}
@@ -106,147 +127,152 @@ export default function PlayerDock() {
           />
         ) : null}
 
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="min-w-0 flex-1 xl:max-w-[32rem]">
-            <div className="flex items-center justify-between gap-3">
-              <p className="player-dock__eyebrow m-0 text-xs font-semibold tracking-[0.24em] text-[var(--kicker)] uppercase">
-                Now Playing
+        <div className="player-dock__progress-wrap">
+          <input
+            type="range"
+            min="0"
+            max={durationSeconds > 0 ? durationSeconds : 1}
+            step="0.1"
+            value={progressValue}
+            onChange={(event) => seekTo(Number(event.target.value))}
+            disabled={!hasTrack}
+            className="player-dock__progress-slider"
+            aria-label="Playback progress"
+          />
+          <div className="player-dock__progress-meta text-[11px] text-[var(--sea-ink-soft)]">
+            <span>{formatTime(progressValue)}</span>
+            <span>{formatTime(durationSeconds)}</span>
+          </div>
+        </div>
+
+        <div className="player-dock__controls-grid">
+          <div className="player-dock__playing-block">
+            <div className="player-dock__cover-shell">
+              {currentTrack?.coverUrl ? (
+                <img
+                  src={currentTrack.coverUrl}
+                  alt={currentTrack.name}
+                  className="player-dock__cover"
+                  loading="lazy"
+                />
+              ) : (
+                <span className="player-dock__cover-placeholder">
+                  {currentTrack ? currentTrack.name.slice(0, 1) : '♪'}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-[var(--sea-ink)]">
+                {currentTrack?.name ?? '还没有正在播放的歌曲'}
               </p>
-              <button
-                type="button"
-                onClick={() => setIsLyricsOpen((value) => !value)}
-                disabled={!hasTrack}
-                className={`rounded-full border px-3 py-1 text-xs transition ${
-                  isLyricsOpen
-                    ? 'border-[rgba(79,184,178,0.42)] bg-[rgba(79,184,178,0.18)] text-[var(--lagoon-deep)]'
-                    : 'border-[var(--chip-line)] bg-[var(--chip-bg)] text-[var(--sea-ink-soft)]'
-                } disabled:cursor-not-allowed disabled:opacity-50`}
-              >
-                {isLyricsOpen ? '收起歌词' : '展开歌词'}
-              </button>
+              <p className="mt-1 truncate text-xs text-[var(--sea-ink-soft)]">
+                {currentTrack?.artists.join(', ') ?? '从首页、搜索页或详情页点击播放后会出现在这里'}
+              </p>
+              <p className="mt-1 truncate text-[11px] text-[var(--sea-ink-soft)]/80">
+                {currentTrack?.albumName ?? '本轮先向旧版底部播放器结构收口'}
+              </p>
+              {lyricPreview.length && !isLyricsOpen ? (
+                <div className="mt-2 space-y-1">
+                  {lyricPreview.map((line, index) => (
+                    <p
+                      key={`${line.time}-${line.content}`}
+                      className={
+                        index === 0
+                          ? 'm-0 truncate text-xs font-medium text-[var(--sea-ink)]'
+                          : 'm-0 truncate text-xs text-[var(--sea-ink-soft)]'
+                      }
+                    >
+                      {line.content}
+                    </p>
+                  ))}
+                </div>
+              ) : null}
             </div>
-            <div className="mt-1 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--line)] bg-[rgba(79,184,178,0.12)] text-sm font-semibold text-[var(--lagoon-deep)]">
-                {currentTrack ? currentTrack.name.slice(0, 1) : '♪'}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-[var(--sea-ink)]">
-                  {currentTrack?.name ?? '播放器骨架已就位'}
-                </p>
-                <p className="truncate text-xs text-[var(--sea-ink-soft)]">
-                  {currentTrack?.artists.join(' / ') ??
-                    '现在已经能从歌单、专辑、艺人和搜索结果实播'}
-                </p>
-                <p className="truncate text-[11px] text-[var(--sea-ink-soft)]/80">
-                  {currentTrack?.albumName ??
-                    '拖动进度条、切换循环/随机和滚动歌词现在已可用'}
-                </p>
-              </div>
-            </div>
-            {lyricPreview.length && !isLyricsOpen ? (
-              <div className="mt-3 space-y-1 pl-[3.75rem]">
-                {lyricPreview.map((line, index) => (
-                  <p
-                    key={`${line.time}-${line.content}`}
-                    className={
-                      index === 0
-                        ? 'm-0 truncate text-xs font-medium text-[var(--sea-ink)]'
-                        : 'm-0 truncate text-xs text-[var(--sea-ink-soft)]'
-                    }
-                  >
-                    {line.content}
-                  </p>
-                ))}
-              </div>
-            ) : null}
           </div>
 
-          <div className="flex flex-1 flex-col gap-3 xl:max-w-[34rem]">
-            <div className="flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={toggleShuffleEnabled}
-                className={`player-dock__button ${shuffleEnabled ? 'player-dock__button--active' : ''}`}
-                aria-label={shuffleEnabled ? 'Disable shuffle' : 'Enable shuffle'}
-                aria-pressed={shuffleEnabled}
-                disabled={!hasTrack || queue.length < 2}
-              >
-                <Shuffle size={16} />
-              </button>
-              <button
-                type="button"
-                onClick={skipToPrevious}
-                className="player-dock__button"
-                aria-label="Previous track"
-                disabled={!hasTrack}
-              >
-                <SkipBack size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={togglePlayback}
-                className="player-dock__button player-dock__button--primary"
-                aria-label={isPlaying ? 'Pause playback' : 'Start playback'}
-                disabled={!hasTrack}
-              >
-                {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-              </button>
-              <button
-                type="button"
-                onClick={skipToNext}
-                className="player-dock__button"
-                aria-label="Next track"
-                disabled={!hasTrack}
-              >
-                <SkipForward size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={cycleRepeatMode}
-                className={`player-dock__button ${repeatMode !== 'off' ? 'player-dock__button--active' : ''}`}
-                aria-label={repeatButtonLabel}
-                aria-pressed={repeatMode !== 'off'}
-                disabled={!hasTrack}
-              >
-                <RepeatIcon size={16} />
-              </button>
-            </div>
+          <div className="player-dock__center-controls">
+            <button
+              type="button"
+              onClick={skipToPrevious}
+              className="player-dock__button"
+              aria-label="Previous track"
+              disabled={!hasTrack}
+            >
+              <SkipBack size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={togglePlayback}
+              className="player-dock__button player-dock__button--primary"
+              aria-label={isPlaying ? 'Pause playback' : 'Start playback'}
+              disabled={!hasTrack}
+            >
+              {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+            </button>
+            <button
+              type="button"
+              onClick={skipToNext}
+              className="player-dock__button"
+              aria-label="Next track"
+              disabled={!hasTrack}
+            >
+              <SkipForward size={18} />
+            </button>
+          </div>
 
-            <div className="flex items-center gap-3 text-[11px] text-[var(--sea-ink-soft)]">
-              <span className="w-9 text-right tabular-nums">
-                {formatTime(progressValue)}
-              </span>
+          <div className="player-dock__right-controls">
+            <button
+              type="button"
+              onClick={toggleNextQueuePage}
+              className={`player-dock__button ${location.pathname === '/next' ? 'player-dock__button--active' : ''}`}
+              aria-label="Open next up queue"
+              disabled={!hasTrack}
+            >
+              <ListMusic size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={cycleRepeatMode}
+              className={`player-dock__button ${repeatMode !== 'off' ? 'player-dock__button--active' : ''}`}
+              aria-label={repeatButtonLabel}
+              aria-pressed={repeatMode !== 'off'}
+              disabled={!hasTrack}
+            >
+              <RepeatIcon size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={toggleShuffleEnabled}
+              className={`player-dock__button ${shuffleEnabled ? 'player-dock__button--active' : ''}`}
+              aria-label={shuffleEnabled ? 'Disable shuffle' : 'Enable shuffle'}
+              aria-pressed={shuffleEnabled}
+              disabled={!hasTrack || queue.length < 2}
+            >
+              <Shuffle size={16} />
+            </button>
+            <label className="player-dock__volume-control">
+              <VolumeIcon size={16} className="text-[var(--sea-ink-soft)]" />
               <input
                 type="range"
                 min="0"
-                max={durationSeconds > 0 ? durationSeconds : 1}
-                step="0.1"
-                value={progressValue}
-                onChange={(event) => seekTo(Number(event.target.value))}
-                disabled={!hasTrack}
-                className="player-dock__slider"
-                aria-label="Playback progress"
+                max="1"
+                step="0.01"
+                value={volume}
+                onChange={(event) => setVolume(Number(event.target.value))}
+                className="player-dock__volume-slider"
+                aria-label="Playback volume"
               />
-              <span className="w-9 tabular-nums">{formatTime(durationSeconds)}</span>
-            </div>
+            </label>
+            <button
+              type="button"
+              onClick={() => setIsLyricsOpen((value) => !value)}
+              disabled={!hasTrack}
+              className={`player-dock__button ${isLyricsOpen ? 'player-dock__button--active' : ''}`}
+              aria-label={isLyricsOpen ? 'Collapse lyrics panel' : 'Open lyrics panel'}
+            >
+              <ChevronUp size={16} />
+            </button>
           </div>
-
-          <label className="flex min-w-0 items-center gap-3 xl:w-56">
-            <Volume2 size={16} className="text-[var(--sea-ink-soft)]" />
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={volume}
-              onChange={(event) => setVolume(Number(event.target.value))}
-              className="player-dock__slider"
-              aria-label="Playback volume"
-            />
-            <span className="w-10 text-right text-xs text-[var(--sea-ink-soft)] tabular-nums">
-              {Math.round(volume * 100)}%
-            </span>
-          </label>
         </div>
       </div>
     </div>

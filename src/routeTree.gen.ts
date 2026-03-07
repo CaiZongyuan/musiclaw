@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as NextRouteImport } from './routes/next'
+import { Route as NewAlbumRouteImport } from './routes/new-album'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlaylistIdRouteImport } from './routes/playlist.$id'
@@ -20,6 +23,7 @@ import { Route as MvIdRouteImport } from './routes/mv.$id'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoI18nRouteImport } from './routes/demo.i18n'
 import { Route as DemoBetterAuthRouteImport } from './routes/demo/better-auth'
+import { Route as DailySongsRouteImport } from './routes/daily.songs'
 import { Route as ArtistIdRouteImport } from './routes/artist.$id'
 import { Route as AlbumIdRouteImport } from './routes/album.$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -34,6 +38,16 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NextRoute = NextRouteImport.update({
+  id: '/next',
+  path: '/next',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewAlbumRoute = NewAlbumRouteImport.update({
+  id: '/new-album',
+  path: '/new-album',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -42,6 +56,11 @@ const LoginRoute = LoginRouteImport.update({
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -79,6 +98,11 @@ const DemoBetterAuthRoute = DemoBetterAuthRouteImport.update({
   path: '/demo/better-auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DailySongsRoute = DailySongsRouteImport.update({
+  id: '/daily/songs',
+  path: '/daily/songs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArtistIdRoute = ArtistIdRouteImport.update({
   id: '/artist/$id',
   path: '/artist/$id',
@@ -98,12 +122,16 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/explore': typeof ExploreRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/new-album': typeof NewAlbumRoute
+  '/next': typeof NextRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/album/$id': typeof AlbumIdRoute
   '/artist/$id': typeof ArtistIdRoute
+  '/daily/songs': typeof DailySongsRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -114,12 +142,16 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/explore': typeof ExploreRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/new-album': typeof NewAlbumRoute
+  '/next': typeof NextRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/album/$id': typeof AlbumIdRoute
   '/artist/$id': typeof ArtistIdRoute
+  '/daily/songs': typeof DailySongsRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -131,12 +163,16 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/explore': typeof ExploreRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/new-album': typeof NewAlbumRoute
+  '/next': typeof NextRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/album/$id': typeof AlbumIdRoute
   '/artist/$id': typeof ArtistIdRoute
+  '/daily/songs': typeof DailySongsRoute
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
@@ -149,12 +185,16 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/explore'
     | '/library'
     | '/login'
+    | '/new-album'
+    | '/next'
     | '/search'
     | '/settings'
     | '/album/$id'
     | '/artist/$id'
+    | '/daily/songs'
     | '/demo/better-auth'
     | '/demo/i18n'
     | '/demo/tanstack-query'
@@ -165,12 +205,16 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/explore'
     | '/library'
     | '/login'
+    | '/new-album'
+    | '/next'
     | '/search'
     | '/settings'
     | '/album/$id'
     | '/artist/$id'
+    | '/daily/songs'
     | '/demo/better-auth'
     | '/demo/i18n'
     | '/demo/tanstack-query'
@@ -181,12 +225,16 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/explore'
     | '/library'
     | '/login'
+    | '/new-album'
+    | '/next'
     | '/search'
     | '/settings'
     | '/album/$id'
     | '/artist/$id'
+    | '/daily/songs'
     | '/demo/better-auth'
     | '/demo/i18n'
     | '/demo/tanstack-query'
@@ -198,12 +246,16 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  ExploreRoute: typeof ExploreRoute
   LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
+  NewAlbumRoute: typeof NewAlbumRoute
+  NextRoute: typeof NextRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
   AlbumIdRoute: typeof AlbumIdRoute
   ArtistIdRoute: typeof ArtistIdRoute
+  DailySongsRoute: typeof DailySongsRoute
   DemoBetterAuthRoute: typeof DemoBetterAuthRoute
   DemoI18nRoute: typeof DemoI18nRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
@@ -228,6 +280,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/next': {
+      id: '/next'
+      path: '/next'
+      fullPath: '/next'
+      preLoaderRoute: typeof NextRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/new-album': {
+      id: '/new-album'
+      path: '/new-album'
+      fullPath: '/new-album'
+      preLoaderRoute: typeof NewAlbumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -240,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -291,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoBetterAuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/daily/songs': {
+      id: '/daily/songs'
+      path: '/daily/songs'
+      fullPath: '/daily/songs'
+      preLoaderRoute: typeof DailySongsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/artist/$id': {
       id: '/artist/$id'
       path: '/artist/$id'
@@ -318,12 +398,16 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  ExploreRoute: ExploreRoute,
   LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
+  NewAlbumRoute: NewAlbumRoute,
+  NextRoute: NextRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
   AlbumIdRoute: AlbumIdRoute,
   ArtistIdRoute: ArtistIdRoute,
+  DailySongsRoute: DailySongsRoute,
   DemoBetterAuthRoute: DemoBetterAuthRoute,
   DemoI18nRoute: DemoI18nRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,

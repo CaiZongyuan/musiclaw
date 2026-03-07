@@ -210,3 +210,14 @@
   - 让艺人页 loader 统一 `Promise.all` 组合详情和专辑请求，再由组件一次消费
 - Prevention:
   - 后续给艺人页补 MV、相似艺人等区块时，优先评估是否并入同一路由 loader，而不是先散落到多个组件请求
+
+## 重写项目必须先锁定原产品基线
+
+- Context:
+  - 当前仓库以 `TanStack Start` 重写 `YesPlayMusic` Web 端，前期已经完成了不少基础设施和页面能力。
+- Problem:
+  - 如果只按“模块做完了多少”推进，而不把旧仓库源码当成唯一产品规范，项目很容易滑向“参考原项目做一个新站”，而不是“1:1 复刻原项目”。
+- Resolution:
+  - 重新把 `/root/Projects/Frontend/YesPlayMusic` 的路由、页面结构、全局壳体和关键交互定义为唯一产品基线；`docs/progress.md` 与计划文档统一改成 parity 驱动写法。
+- Prevention:
+  - 后续每做一个页面，先看旧仓库对应源码，再记录“已对齐 / 功能已到位但未对齐 / 未实现”；不要在 parity 未建立前继续扩展非原版能力。
