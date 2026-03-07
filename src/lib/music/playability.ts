@@ -23,7 +23,11 @@ export function isTrackPlayable(
   }
 
   if (track.fee === 1 || track.privilege?.fee === 1) {
-    if (userVipType === 11) {
+    if (typeof userVipType === 'number' && userVipType > 0) {
+      return { playable: true, reason: '' }
+    }
+
+    if (hasCloudPrivilege && userVipType == null) {
       return { playable: true, reason: '' }
     }
 

@@ -117,6 +117,7 @@ export interface NeteaseTrackSourceItem {
   level?: string
   time?: number
   fee?: number
+  freeTrialInfo?: Record<string, {}> | null
 }
 
 export interface NeteaseTrackSourceResponse {

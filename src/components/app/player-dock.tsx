@@ -158,7 +158,7 @@ export default function PlayerDock() {
   }
 
   return (
-    <div className="player-dock border-t border-[var(--line)] bg-[color-mix(in_oklab,var(--surface-strong)_88%,black_12%)] px-4 pt-2 pb-3 backdrop-blur-xl">
+    <div className="player-dock border-t border-[var(--line)] bg-[var(--header-bg)] px-4 pt-2 pb-3 backdrop-blur-xl">
       <div className="page-wrap flex flex-col gap-3">
         {currentTrack && isLyricsOpen ? (
           <PlayerLyricsPanel
@@ -209,10 +209,10 @@ export default function PlayerDock() {
               )}
             </button>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-[var(--sea-ink)]">
+              <p className="player-dock__track-name">
                 {currentTrack?.name ?? '还没有正在播放的歌曲'}
               </p>
-              <p className="mt-1 truncate text-xs text-[var(--sea-ink-soft)]">
+              <p className="player-dock__track-artists">
                 {currentTrack ? (
                   artistNames.map((artistName, index) => {
                     const artistId = artistIds[index]
@@ -239,7 +239,7 @@ export default function PlayerDock() {
                   '从首页、搜索页或详情页点击播放后会出现在这里'
                 )}
               </p>
-              <p className="mt-1 truncate text-[11px] text-[var(--sea-ink-soft)]/80">
+              <p className="player-dock__track-source">
                 {currentTrack?.albumName ? (
                   <>
                     <button
@@ -267,14 +267,14 @@ export default function PlayerDock() {
                 ) : null}
               </p>
               {lyricPreview.length && !isLyricsOpen ? (
-                <div className="mt-2 space-y-1">
+                <div className="player-dock__lyric-preview">
                   {lyricPreview.map((line, index) => (
                     <p
                       key={`${line.time}-${line.content}`}
                       className={
                         index === 0
-                          ? 'm-0 truncate text-xs font-medium text-[var(--sea-ink)]'
-                          : 'm-0 truncate text-xs text-[var(--sea-ink-soft)]'
+                          ? 'player-dock__lyric-line player-dock__lyric-line--active'
+                          : 'player-dock__lyric-line'
                       }
                     >
                       {line.content}

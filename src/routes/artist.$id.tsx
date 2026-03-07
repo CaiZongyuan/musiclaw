@@ -10,6 +10,7 @@ import type {
   fetchArtistDetail,
 } from '#/features/artist/api/artist-api'
 import type { NeteaseTrack } from '#/features/music/api/types'
+import { usePlayableTracks } from '#/lib/music/playability-client'
 import PlayTrackButton from '#/features/player/components/play-track-button'
 import { buildPlayerQueueFromTracks } from '#/features/player/lib/player-track'
 import { usePlayerStore } from '#/features/player/stores/player-store'
@@ -46,7 +47,7 @@ export const Route = createFileRoute('/artist/$id')({
 function ArtistRoute() {
   const { albums, detail }: ArtistRouteLoaderData = Route.useLoaderData()
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
-  const tracks = detail.hotSongs as NeteaseTrack[]
+  const tracks = usePlayableTracks(detail.hotSongs as NeteaseTrack[])
   const latestRelease = albums.hotAlbums[0] ?? null
   const queueSource = {
     label: detail.artist.name,

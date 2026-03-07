@@ -4,6 +4,7 @@ import RoutePlaceholder from '#/components/app/route-placeholder'
 import { albumDetailQueryOptions } from '#/features/album/api/album-api'
 import type { fetchAlbumDetail } from '#/features/album/api/album-api'
 import type { NeteaseTrack } from '#/features/music/api/types'
+import { usePlayableTracks } from '#/lib/music/playability-client'
 import PlayTrackButton from '#/features/player/components/play-track-button'
 import { buildPlayerQueueFromTracks } from '#/features/player/lib/player-track'
 import { usePlayerStore } from '#/features/player/stores/player-store'
@@ -18,7 +19,7 @@ export const Route = createFileRoute('/album/$id')({
 function AlbumRoute() {
   const data: Awaited<ReturnType<typeof fetchAlbumDetail>> = Route.useLoaderData()
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
-  const tracks = data.songs as NeteaseTrack[]
+  const tracks = usePlayableTracks(data.songs as NeteaseTrack[])
   const queueSource = {
     label: data.album.name,
     to: '/album/$id' as const,

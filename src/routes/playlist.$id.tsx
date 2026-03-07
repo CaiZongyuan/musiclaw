@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import RouteErrorState from '#/components/app/route-error-state'
 import RoutePlaceholder from '#/components/app/route-placeholder'
 import type { NeteaseTrack } from '#/features/music/api/types'
+import { usePlayableTracks } from '#/lib/music/playability-client'
 import PlayTrackButton from '#/features/player/components/play-track-button'
 import { buildPlayerQueueFromTracks } from '#/features/player/lib/player-track'
 import { usePlayerStore } from '#/features/player/stores/player-store'
@@ -19,7 +20,7 @@ function PlaylistRoute() {
   const data: Awaited<ReturnType<typeof fetchPlaylistDetail>> =
     Route.useLoaderData()
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
-  const tracks = data.playlist.tracks as NeteaseTrack[]
+  const tracks = usePlayableTracks(data.playlist.tracks as NeteaseTrack[])
   const queueSource = {
     label: data.playlist.name,
     to: '/playlist/$id' as const,

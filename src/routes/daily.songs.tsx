@@ -5,6 +5,7 @@ import RouteErrorState from '#/components/app/route-error-state'
 import RoutePlaceholder from '#/components/app/route-placeholder'
 import { hasAccountNeteaseSession, useAuthStore } from '#/features/auth/stores/auth-store'
 import { dailySongsQueryOptions } from '#/features/home/api/for-you-api'
+import { usePlayableTracks } from '#/lib/music/playability-client'
 import PlayTrackButton from '#/features/player/components/play-track-button'
 
 export const Route = createFileRoute('/daily/songs')({
@@ -31,6 +32,7 @@ function DailySongsRoute() {
     ...dailySongsQueryOptions(),
     enabled: hasAccountSession,
   })
+  const playableDailyTracks = usePlayableTracks(dailyTracks)
 
   if (!hasAccountSession) {
     return (
@@ -83,20 +85,20 @@ function DailySongsRoute() {
         title="每日推荐"
         description="这里已经接回账号态下的真实日推歌曲列表。你可以像旧版一样直接播放全部，或者把单曲加入“下一首”。"
         actions={
-          dailyTracks.length > 0 ? (
+          playableDailyTracks.length > 0 ? (
             <PlayTrackButton
-              track={dailyTracks[0]}
-              queue={dailyTracks}
-                    source={{ label: '每日推荐', to: '/daily/songs' }}
+              track={playableDailyTracks[0]}
+              queue={playableDailyTracks}
+              source={{ label: '每日推荐', to: '/daily/songs' }}
               className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               label="播放全部"
             />
           ) : null
         }
       >
-        {dailyTracks.length > 0 ? (
+        {playableDailyTracks.length > 0 ? (
           <div className="grid gap-3">
-            {dailyTracks.map((track, index) => (
+            {playableDailyTracks.map((track, index) => (
               <article
                 key={track.id}
                 className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--line)] px-4 py-3"
@@ -120,7 +122,7 @@ function DailySongsRoute() {
                   </span>
                   <PlayTrackButton
                     track={track}
-                    queue={dailyTracks}
+                    queue={playableDailyTracks}
                     source={{ label: '每日推荐', to: '/daily/songs' }}
                     showPlayNext
                     className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"

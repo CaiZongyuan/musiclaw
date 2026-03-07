@@ -1,5 +1,29 @@
 # Lessons Learned
 
+## 浏览器本地持久化的网易云 cookie 不能走服务端取音源
+
+- Context:
+  - 当前项目的网易云账号态主要持久化在浏览器 localStorage，而不是 SSR 请求上下文里的标准 session / cookie
+- Problem:
+  - 如果播放器取 `/song/url` 走服务端 `createServerFn`，服务端拿不到本地 `rawCookie`，就会把 VIP 用户误当成未登录用户，返回试听片段、空 URL，或者让页面把歌曲误标成 `VIP Only`
+- Resolution:
+  - 对依赖本地网易云 cookie 的音频取流，优先在客户端通过 `apiClient` 发请求，并显式开启 `attachNeteaseCookie`
+  - 对首屏已在服务端算过的 `playable / reason`，在客户端拿到当前账号态后再重算一次
+- Prevention:
+  - 后续凡是“结果依赖浏览器 localStorage 中的网易云 cookie”的接口，都先评估它是否真的适合放在 server fn / loader；不适合的话默认走客户端请求或客户端二次校正
+
+## 原版 parity 不能建立在自定义主题之上
+
+- Context:
+  - 当前重写仓库早期引入了一套自定义海洋风色板、渐变背景和卡片阴影体系
+- Problem:
+  - 即使局部布局接近原版，只要全局色板、字体和容器背景仍然是另一套设计语言，用户会立刻感知“每个页面都不像原版”
+- Resolution:
+  - 回迁原版 `global.scss` 的核心主题变量，至少先对齐：页面底色、文字颜色、主色、导航/播放器半透明背景、次级按钮底色与默认字体节奏
+  - 首页这类以封面为主的模块，不要额外包一层和原版不一致的卡片底色
+- Prevention:
+  - 后续做 parity 时，先核对全局主题变量和容器语义，再调整局部字号、间距和 hover；不要在错误主题上继续做像素级微调
+
 ## 非详情页来源要把查询条件一起带进播放器上下文
 
 - Context:

@@ -60,6 +60,25 @@ export async function fetchTrackSource(
   return response.data[0] ?? ({ id: Number(id), url: null } as NeteaseTrackSourceItem)
 }
 
+export async function fetchTrackSourceClient(
+  id: string | number,
+  bitrate = DEFAULT_TRACK_SOURCE_BITRATE,
+) {
+  const response = await apiClient.get<NeteaseTrackSourceResponse>('/song/url', {
+    params: {
+      id: Number(id),
+      br: bitrate,
+      timestamp: Date.now(),
+    },
+    meta: {
+      attachNeteaseCookie: true,
+      attachRealIp: true,
+    },
+  })
+
+  return response.data.data?.[0] ?? ({ id: Number(id), url: null } as NeteaseTrackSourceItem)
+}
+
 export async function toggleTrackLike(id: string | number, like = true) {
   const response = await apiClient.get<{ code: number }>('/like', {
     params: {

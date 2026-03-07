@@ -9,6 +9,7 @@ import type {
   NeteasePlaylistSummary,
   NeteaseTrack,
 } from '#/features/music/api/types'
+import { usePlayableTracks } from '#/lib/music/playability-client'
 import PlayTrackButton from '#/features/player/components/play-track-button'
 import type { PlayerQueueSource } from '#/features/player/stores/player-store'
 import { searchQueryOptions } from '#/features/search/api/search-api'
@@ -273,6 +274,7 @@ function SearchRoute() {
   const search = normalizeSearchParams(Route.useSearch())
   const data: SearchLoaderData = Route.useLoaderData()
   const [inputValue, setInputValue] = useState(search.q)
+  const playableSongs = usePlayableTracks(data?.result.songs ?? [])
 
   useEffect(() => {
     setInputValue(search.q)
@@ -422,8 +424,8 @@ function SearchRoute() {
                     </button>
                   </div>
                   {renderSongs(
-                    (data?.result.songs ?? []).slice(0, 8),
-                    data?.result.songs ?? [],
+                    playableSongs.slice(0, 8),
+                    playableSongs,
                     createSearchQueueSource(search),
                   )}
                 </section>
@@ -471,8 +473,8 @@ function SearchRoute() {
 
             {search.type === 1
               ? renderSongs(
-                  data?.result.songs ?? [],
-                  data?.result.songs ?? [],
+                  playableSongs,
+                  playableSongs,
                   createSearchQueueSource(search),
                 )
               : null}

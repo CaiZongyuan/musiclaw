@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Howl } from 'howler'
 import { useShallow } from 'zustand/react/shallow'
-import { getTrackSource } from '#/features/track/api/track-api'
+import { fetchTrackSourceClient } from '#/features/track/api/track-api'
 import { usePlayerStore } from '#/features/player/stores/player-store'
 
 const PROGRESS_SYNC_INTERVAL = 250
@@ -47,20 +47,23 @@ export default function PlayerEngine() {
 
     let isCancelled = false
 
-    void getTrackSource({
-      data: {
-        id: currentTrack.id,
-      },
-    }).then((source) => {
-      if (!isCancelled && source.url) {
-        setTrackSource(currentTrack.id, source.url)
+    void fetchTrackSourceClient(currentTrack.id).then((source) => {
+      if (isCancelled) {
+        return
       }
+
+      if (source.url && source.freeTrialInfo == null) {
+        setTrackSource(currentTrack.id, source.url)
+        return
+      }
+
+      skipToNext()
     })
 
     return () => {
       isCancelled = true
     }
-  }, [currentTrack, setTrackSource])
+  }, [currentTrack, setTrackSource, skipToNext])
 
   useEffect(() => {
     const signature = currentTrack?.sourceUrl

@@ -56,15 +56,21 @@ function HomeCoverCard({
   subtitle,
   to,
   params,
+  variant = 'default',
 }: {
   imageUrl?: string
   title: string
   subtitle: string
   to: '/playlist/$id' | '/album/$id' | '/artist/$id'
   params: { id: string }
+  variant?: 'default' | 'artist'
 }) {
   return (
-    <Link to={to} params={params} className="home-cover-card feature-card">
+    <Link
+      to={to}
+      params={params}
+      className={`home-cover-card feature-card ${variant === 'artist' ? 'home-cover-card--artist' : ''}`}
+    >
       <div className="home-cover-card__artwork-shell">
         {imageUrl ? (
           <img
@@ -152,6 +158,7 @@ function HomeRoute() {
               subtitle={artist.alias?.join(' / ') || 'Artist'}
               to="/artist/$id"
               params={{ id: String(artist.id) }}
+              variant="artist"
             />
           ))}
         </div>

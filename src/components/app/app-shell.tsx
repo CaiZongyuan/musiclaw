@@ -1,9 +1,49 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
+import { useShallow } from 'zustand/react/shallow'
+import { fetchUserAccount } from '#/features/auth/api/auth-api'
+import { hasAccountNeteaseSession, useAuthStore } from '#/features/auth/stores/auth-store'
 import PlayerEngine from '#/features/player/components/player-engine'
 import AppNavbar from './app-navbar'
 import PlayerDock from './player-dock'
 
 export default function AppShell({ children }: { children: ReactNode }) {
+  const { loginMode, musicU, profile, rawCookie, setSession } = useAuthStore(
+    useShallow((state) => ({
+      loginMode: state.loginMode,
+      musicU: state.musicU,
+      profile: state.profile,
+      rawCookie: state.rawCookie,
+      setSession: state.setSession,
+    })),
+  )
+
+  useEffect(() => {
+    if (!hasAccountNeteaseSession({ loginMode, musicU, profile, rawCookie, csrfToken: null })) {
+      return
+    }
+
+    let cancelled = false
+
+    void fetchUserAccount()
+      .then((accountResult) => {
+        if (cancelled || !accountResult.profile) {
+          return
+        }
+
+        setSession({
+          profile: {
+            ...(profile ?? {}),
+            ...accountResult.profile,
+          },
+        })
+      })
+      .catch(() => undefined)
+
+    return () => {
+      cancelled = true
+    }
+  }, [loginMode, musicU, profile, rawCookie, setSession])
+
   return (
     <div className="app-shell min-h-screen pb-36 md:pb-44">
       <AppNavbar />

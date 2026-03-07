@@ -30,6 +30,7 @@ export default function AppNavbar() {
     })),
   )
   const [keywords, setKeywords] = useState('')
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
   const hasSession = hasActiveNeteaseSession({
@@ -148,13 +149,18 @@ export default function AppNavbar() {
         </nav>
 
         <div className="app-navbar__right">
-          <form className="app-navbar__search" onSubmit={handleSubmit}>
+          <form
+            className={`app-navbar__search ${isSearchFocused ? 'app-navbar__search--focused' : ''}`}
+            onSubmit={handleSubmit}
+          >
             <Search size={16} className="app-navbar__search-icon" />
             <input
               type="search"
               value={keywords}
               onChange={(event) => setKeywords(event.target.value)}
-              placeholder="Search"
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              placeholder={isSearchFocused ? '' : 'Search'}
               aria-label="Search songs, albums, artists, playlists"
             />
           </form>
@@ -163,7 +169,7 @@ export default function AppNavbar() {
             <button
               type="button"
               onClick={() => setMenuOpen((value) => !value)}
-              className="app-navbar__avatar-button"
+              className={`app-navbar__avatar-button ${menuOpen ? 'app-navbar__avatar-button--open' : ''}`}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
             >
