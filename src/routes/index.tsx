@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import RouteErrorState from '#/components/app/route-error-state'
 import { homePageQueryOptions } from '#/features/home/api/home-api'
+import { byAppleMusic } from '#/features/home/lib/static-data'
 import type {
   NeteaseAlbumSummary,
   NeteaseArtistSummary,
@@ -9,7 +10,7 @@ import type {
 
 export const Route = createFileRoute('/')({
   loader: ({ context }) =>
-    context.queryClient.ensureQueryData(homePageQueryOptions(8)),
+    context.queryClient.ensureQueryData(homePageQueryOptions(10)),
   errorComponent: HomeErrorComponent,
   component: HomeRoute,
 })
@@ -91,7 +92,7 @@ function HomeFeatureCard({
   title: string
   subtitle: string
   description: string
-  to: '/daily/songs' | '/login'
+  to: '/daily/songs' | '/login/account'
 }) {
   return (
     <Link to={to} className="home-feature-card feature-card">
@@ -116,21 +117,17 @@ function HomeRoute() {
     <div className="home-screen rise-in">
       <section className="home-row home-row--first">
         <HomeSectionHeader title="by Apple Music" />
-        <div className="home-editorial-strip">
-          <article className="home-editorial-card feature-card">
-            <p className="home-feature-card__eyebrow">Editorial Row</p>
-            <h3 className="home-feature-card__title">原版首屏卡片区已重新纳入复刻范围</h3>
-            <p className="home-feature-card__description">
-              这一行先作为结构占位，后续会按旧版静态数据与文案继续收口。
-            </p>
-          </article>
-          <article className="home-editorial-card feature-card">
-            <p className="home-feature-card__eyebrow">UI Parity</p>
-            <h3 className="home-feature-card__title">首页从仪表盘式布局改回纵向内容流</h3>
-            <p className="home-feature-card__description">
-              先对齐原版的区块顺序、标题节奏、卡片密度，再补齐每一块的真实细节。
-            </p>
-          </article>
+        <div className="home-cover-grid">
+          {byAppleMusic.map((playlist) => (
+            <HomeCoverCard
+              key={playlist.id}
+              imageUrl={playlist.coverImgUrl}
+              title={playlist.name}
+              subtitle="Apple Music"
+              to="/playlist/$id"
+              params={{ id: String(playlist.id) }}
+            />
+          ))}
         </div>
       </section>
 
@@ -158,16 +155,16 @@ function HomeRoute() {
         <HomeSectionHeader title="For You" />
         <div className="home-feature-grid">
           <HomeFeatureCard
-            title="Daily Tracks"
-            subtitle="Daily Recommendation"
-            description="对齐旧版首页里的每日推荐入口，下一轮继续补日推真实数据与登录态校验。"
+            title="每日推荐"
+            subtitle="Daily Tracks"
+            description="继续对齐旧版 DailyTracksCard 的入口位置和双卡片布局；登录后可进入每日推荐页面。"
             to="/daily/songs"
           />
           <HomeFeatureCard
-            title="Personal FM"
-            subtitle="Radio"
-            description="保留旧版首页双卡片结构，这一块后续接回 FM 业务链路与交互细节。"
-            to="/login"
+            title="私人 FM"
+            subtitle="Personal FM"
+            description="保留旧版首页 For You 第二张卡的位置，下一轮继续接回 FM 的真实业务链路。"
+            to="/login/account"
           />
         </div>
       </section>

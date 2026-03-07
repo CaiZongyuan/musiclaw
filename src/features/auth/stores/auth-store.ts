@@ -62,5 +62,9 @@ export const useAuthStore = create<AuthStoreState>()(
 )
 
 export function hasActiveNeteaseSession(state: AuthStoreSnapshot) {
+  return Boolean(state.rawCookie || state.musicU || state.profile?.userId)
+}
+
+export function hasAccountNeteaseSession(state: AuthStoreSnapshot) {
   return Boolean(state.rawCookie || state.musicU)
 }

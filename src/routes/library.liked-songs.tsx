@@ -2,33 +2,45 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
+import { useAuthStore } from '#/features/auth/stores/auth-store'
+import type { NeteaseTrack } from '#/features/music/api/types'
 import PlayTrackButton from '#/features/player/components/play-track-button'
 import { buildPlayerQueueFromTracks } from '#/features/player/lib/player-track'
 import { usePlayerStore } from '#/features/player/stores/player-store'
 import { playlistDetailQueryOptions } from '#/features/playlist/api/playlist-api'
-import { trackDetailQueryOptions } from '#/features/track/api/track-api'
-import { useAuthStore } from '#/features/auth/stores/auth-store'
+import { getTrackDetail, trackDetailQueryOptions } from '#/features/track/api/track-api'
 import { userPlaylistsQueryOptions } from '#/features/user/api/user-api'
-import type { NeteaseTrack } from '#/features/music/api/types'
 
 export const Route = createFileRoute('/library/liked-songs')({
   component: LikedSongsRoute,
 })
 
 const PAGE_SIZE = 50
+const TRACK_BATCH_SIZE = 200
+
+function chunkTrackIds(trackIds: number[], size: number) {
+  const chunks: number[][] = []
+
+  for (let index = 0; index < trackIds.length; index += size) {
+    chunks.push(trackIds.slice(index, index + size))
+  }
+
+  return chunks
+}
 
 function LikedSongsRoute() {
   const isClient = typeof window !== 'undefined'
   const [currentPage, setCurrentPage] = useState(1)
+  const [playAllError, setPlayAllError] = useState<string | null>(null)
+  const [isBuildingFullQueue, setIsBuildingFullQueue] = useState(false)
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
-  const { profile, rawCookie } = useAuthStore(
+  const { profile } = useAuthStore(
     useShallow((state) => ({
       profile: state.profile,
-      rawCookie: state.rawCookie,
     })),
   )
 
-  const hasSession = Boolean(rawCookie && profile?.userId)
+  const hasSession = Boolean(profile?.userId)
   const userId = profile?.userId ?? null
 
   const playlistsQuery = useQuery({
@@ -55,10 +67,15 @@ function LikedSongsRoute() {
   const pageStartIndex = (safeCurrentPage - 1) * PAGE_SIZE
   const pageEndIndex = pageStartIndex + PAGE_SIZE
 
-  const pageTrackIds = playlistTrackIds
-    .slice(pageStartIndex, pageEndIndex)
-    .map((track) => track.id)
+  const orderedTrackIds = useMemo(() => {
+    if (playlistTrackIds.length > 0) {
+      return playlistTrackIds.map((track) => track.id)
+    }
 
+    return baseTracks.map((track) => track.id)
+  }, [baseTracks, playlistTrackIds])
+
+  const pageTrackIds = orderedTrackIds.slice(pageStartIndex, pageEndIndex)
   const knownTrackIds = new Set(baseTracks.map((track) => track.id))
   const missingPageTrackIds = pageTrackIds.filter((trackId) => !knownTrackIds.has(trackId))
 
@@ -94,6 +111,45 @@ function LikedSongsRoute() {
   const canGoPrevious = safeCurrentPage > 1
   const canGoNext = safeCurrentPage < totalPages
 
+  async function handlePlayAll() {
+    if (orderedTrackIds.length === 0 && baseTracks.length === 0) {
+      return
+    }
+
+    setPlayAllError(null)
+    setIsBuildingFullQueue(true)
+
+    try {
+      const fullTrackMap = new Map<number, NeteaseTrack>(hydratedTrackMap)
+      const missingTrackIds = orderedTrackIds.filter((trackId) => !fullTrackMap.has(trackId))
+
+      for (const trackIdChunk of chunkTrackIds(missingTrackIds, TRACK_BATCH_SIZE)) {
+        if (trackIdChunk.length === 0) {
+          continue
+        }
+
+        const response = await getTrackDetail({
+          data: { ids: trackIdChunk.join(',') },
+        })
+
+        for (const track of response.songs ?? []) {
+          fullTrackMap.set(track.id, track)
+        }
+      }
+
+      const fullQueueTracks = (orderedTrackIds.length > 0 ? orderedTrackIds : baseTracks.map((track) => track.id))
+        .map((trackId) => fullTrackMap.get(trackId))
+        .filter((track): track is NeteaseTrack => Boolean(track))
+
+      const queueTracks = fullQueueTracks.length > 0 ? fullQueueTracks : baseTracks
+      loadQueueAndPlay(buildPlayerQueueFromTracks(queueTracks))
+    } catch (error) {
+      setPlayAllError(error instanceof Error ? error.message : '构建完整播放队列失败，请稍后重试')
+    } finally {
+      setIsBuildingFullQueue(false)
+    }
+  }
+
   if (!hasSession) {
     return (
       <main className="py-10">
@@ -125,7 +181,7 @@ function LikedSongsRoute() {
               我喜欢的音乐
             </h1>
             <p className="mt-4 text-sm leading-7 text-[var(--sea-ink-soft)] sm:text-base">
-              这一页现在直接读取你喜欢歌曲歌单的详细列表，并支持分页浏览、播放全部或逐首播放。
+              这一页现在会按歌单 `trackIds` 分页，并在“播放全部”时补齐整张喜欢歌单的曲目详情后再构建完整播放队列。
             </p>
           </div>
 
@@ -135,11 +191,11 @@ function LikedSongsRoute() {
             </Link>
             <button
               type="button"
-              onClick={() => loadQueueAndPlay(buildPlayerQueueFromTracks(baseTracks))}
-              disabled={baseTracks.length === 0}
+              onClick={handlePlayAll}
+              disabled={baseTracks.length === 0 || isBuildingFullQueue}
               className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
             >
-              播放已加载曲目
+              {isBuildingFullQueue ? '正在构建完整队列…' : '播放全部'}
             </button>
           </div>
         </div>
@@ -168,6 +224,12 @@ function LikedSongsRoute() {
           </div>
         </div>
 
+        {playAllError ? (
+          <div className="mt-6 rounded-[1.25rem] border border-[rgba(220,38,38,0.18)] bg-[rgba(220,38,38,0.08)] px-4 py-3 text-sm text-[rgb(153,27,27)] dark:text-[rgb(254,202,202)]">
+            {playAllError}
+          </div>
+        ) : null}
+
         <div className="mt-8 grid gap-3">
           {likedSongsQuery.isLoading || missingTracksQuery.isLoading ? (
             <div className="library-empty-state">正在加载喜欢的歌曲…</div>
@@ -186,6 +248,7 @@ function LikedSongsRoute() {
                 <PlayTrackButton
                   track={track}
                   queue={currentPageTracks}
+                  showPlayNext
                   className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </article>

@@ -3,16 +3,10 @@ import { Play, Trash2 } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 import { usePlayerStore } from '#/features/player/stores/player-store'
 
-export const Route = createFileRoute('/next')({
-  component: NextRoute,
-})
+export const Route = createFileRoute('/next')({ component: NextRoute })
 
 function formatTrackTime(durationMs?: number) {
-  if (!durationMs || durationMs < 1000) {
-    return '0:00'
-  }
-
-  const totalSeconds = Math.floor(durationMs / 1000)
+  const totalSeconds = Math.floor((durationMs ?? 0) / 1000)
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = totalSeconds % 60
   return `${minutes}:${String(seconds).padStart(2, '0')}`
@@ -88,11 +82,22 @@ function QueueTrackCard({
 }
 
 function NextRoute() {
-  const { currentTrackId, playTrack, queue, removeTrackFromQueue } = usePlayerStore(
+  const {
+    clearPlayNextQueue,
+    currentTrackId,
+    playNextQueue,
+    playTrack,
+    queue,
+    removeTrackFromPlayNext,
+    removeTrackFromQueue,
+  } = usePlayerStore(
     useShallow((state) => ({
+      clearPlayNextQueue: state.clearPlayNextQueue,
       currentTrackId: state.currentTrackId,
+      playNextQueue: state.playNextQueue,
       playTrack: state.playTrack,
       queue: state.queue,
+      removeTrackFromPlayNext: state.removeTrackFromPlayNext,
       removeTrackFromQueue: state.removeTrackFromQueue,
     })),
   )
@@ -100,8 +105,13 @@ function NextRoute() {
   const currentIndex = queue.findIndex((track) => track.id === currentTrackId)
   const currentTrack =
     queue.find((track) => track.id === currentTrackId) ?? queue[0] ?? null
+  const playNextIds = new Set(playNextQueue.map((track) => track.id))
   const upcomingTracks =
-    currentIndex >= 0 ? queue.slice(currentIndex + 1, currentIndex + 101) : queue.slice(1, 101)
+    currentIndex >= 0
+      ? queue
+          .slice(currentIndex + 1, currentIndex + 101)
+          .filter((track) => !playNextIds.has(track.id))
+      : queue.slice(1, 101).filter((track) => !playNextIds.has(track.id))
 
   if (!currentTrack) {
     return (
@@ -146,6 +156,31 @@ function NextRoute() {
         />
       </section>
 
+      {playNextQueue.length > 0 ? (
+        <section className="queue-page__section">
+          <div className="queue-page__header">
+            <h2 className="queue-page__title">插队播放</h2>
+            <div className="flex items-center gap-3">
+              <span className="queue-page__count">{playNextQueue.length} 首</span>
+              <button type="button" onClick={clearPlayNextQueue} className="app-chip cursor-pointer">
+                清除队列
+              </button>
+            </div>
+          </div>
+          <div className="queue-page__list">
+            {playNextQueue.map((track, index) => (
+              <QueueTrackCard
+                key={`play-next-${track.id}-${index}`}
+                track={track}
+                indexLabel={String(index + 1).padStart(2, '0')}
+                onPlay={() => playTrack(track.id)}
+                onRemove={() => removeTrackFromPlayNext(track.id)}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="queue-page__section">
         <div className="queue-page__header">
           <h2 className="queue-page__title">Next Up</h2>
@@ -166,7 +201,7 @@ function NextRoute() {
           </div>
         ) : (
           <div className="queue-page__empty rounded-[1.5rem] border border-dashed border-[var(--line)] px-6 py-10 text-sm text-[var(--sea-ink-soft)]">
-            当前队列里还没有更多歌曲。继续在歌单、专辑或搜索结果里点播，就会按顺序出现在这里。
+            当前队列里还没有更多歌曲。继续在歌单、专辑或搜索结果里点播，或使用“下一首”操作，就会出现在这里。
           </div>
         )}
       </section>

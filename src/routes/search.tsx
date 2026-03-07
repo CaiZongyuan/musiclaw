@@ -130,6 +130,7 @@ function renderSongs(tracks: NeteaseTrack[], queue = tracks) {
               <PlayTrackButton
                 track={track}
                 queue={queue}
+                showPlayNext
                 className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>

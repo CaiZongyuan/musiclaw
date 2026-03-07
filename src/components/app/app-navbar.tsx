@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, ArrowRight, Github, Search, Settings } from 'lucide-react'
-import { useEffect, useState, type FormEvent } from 'react'
+import { ArrowLeft, ArrowRight, ChevronDown, Search } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import {
   hasActiveNeteaseSession,
@@ -19,17 +19,21 @@ const DEFAULT_AVATAR_URL =
 export default function AppNavbar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { musicU, profile, rawCookie } = useAuthStore(
+  const menuRef = useRef<HTMLDivElement | null>(null)
+  const { clearSession, loginMode, musicU, profile, rawCookie } = useAuthStore(
     useShallow((state) => ({
+      clearSession: state.clearSession,
+      loginMode: state.loginMode,
       musicU: state.musicU,
       profile: state.profile,
       rawCookie: state.rawCookie,
     })),
   )
   const [keywords, setKeywords] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const hasSession = hasActiveNeteaseSession({
-    loginMode: null,
+    loginMode,
     profile,
     musicU,
     csrfToken: null,
@@ -44,6 +48,22 @@ export default function AppNavbar() {
     const search = location.search as { q?: unknown }
     setKeywords(typeof search.q === 'string' ? search.q : '')
   }, [location.pathname, location.search])
+
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      if (!menuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+
+    if (menuOpen) {
+      window.addEventListener('mousedown', handlePointerDown)
+    }
+
+    return () => {
+      window.removeEventListener('mousedown', handlePointerDown)
+    }
+  }, [menuOpen])
 
   function goBack() {
     if (typeof window !== 'undefined') {
@@ -65,6 +85,7 @@ export default function AppNavbar() {
       return
     }
 
+    setMenuOpen(false)
     void navigate({
       to: '/search',
       search: {
@@ -74,9 +95,10 @@ export default function AppNavbar() {
     })
   }
 
-  const avatarUrl = hasSession && profile?.avatarUrl
-    ? `${profile.avatarUrl}?param=60y60`
-    : DEFAULT_AVATAR_URL
+  const avatarUrl =
+    hasSession && profile?.avatarUrl
+      ? `${profile.avatarUrl}?param=60y60`
+      : DEFAULT_AVATAR_URL
 
   return (
     <header className="app-navbar">
@@ -137,36 +159,74 @@ export default function AppNavbar() {
             />
           </form>
 
-          <a
-            href="https://github.com/qier222/YesPlayMusic"
-            target="_blank"
-            rel="noreferrer"
-            className="app-navbar__icon-button app-navbar__icon-link"
-            aria-label="Open YesPlayMusic on GitHub"
-          >
-            <Github size={16} />
-          </a>
+          <div ref={menuRef} className="app-navbar__menu-shell">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((value) => !value)}
+              className="app-navbar__avatar-button"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+            >
+              <img
+                src={avatarUrl}
+                alt={hasSession ? profile?.nickname ?? 'User avatar' : 'Default avatar'}
+                className="app-navbar__avatar"
+                loading="lazy"
+              />
+              <ChevronDown size={14} className="app-navbar__avatar-caret" />
+            </button>
 
-          <Link
-            to="/settings"
-            className="app-navbar__icon-button app-navbar__icon-link hidden sm:inline-flex"
-            aria-label="Open settings"
-          >
-            <Settings size={16} />
-          </Link>
-
-          <Link
-            to={hasSession ? '/settings' : '/login'}
-            className="app-navbar__avatar-link"
-            aria-label={hasSession ? 'Open user settings' : 'Open login page'}
-          >
-            <img
-              src={avatarUrl}
-              alt={hasSession ? profile?.nickname ?? 'User avatar' : 'Default avatar'}
-              className="app-navbar__avatar"
-              loading="lazy"
-            />
-          </Link>
+            {menuOpen ? (
+              <div className="app-navbar__menu" role="menu">
+                {hasSession ? (
+                  <>
+                    <div className="app-navbar__menu-header">
+                      <p className="app-navbar__menu-title">{profile?.nickname ?? '网易云用户'}</p>
+                      <p className="app-navbar__menu-subtitle">
+                        {loginMode === 'username' ? '用户名只读模式' : '账号登录'}
+                      </p>
+                    </div>
+                    <Link to="/library" className="app-navbar__menu-item" onClick={() => setMenuOpen(false)}>
+                      音乐库
+                    </Link>
+                    <Link to="/settings" className="app-navbar__menu-item" onClick={() => setMenuOpen(false)}>
+                      设置
+                    </Link>
+                    <button
+                      type="button"
+                      className="app-navbar__menu-item"
+                      onClick={() => {
+                        clearSession()
+                        setMenuOpen(false)
+                      }}
+                    >
+                      退出当前登录态
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" className="app-navbar__menu-item" onClick={() => setMenuOpen(false)}>
+                      登录入口
+                    </Link>
+                    <Link
+                      to="/login/account"
+                      className="app-navbar__menu-item"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      账号登录
+                    </Link>
+                    <Link
+                      to="/login/username"
+                      className="app-navbar__menu-item"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      用户名模式
+                    </Link>
+                  </>
+                )}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </header>

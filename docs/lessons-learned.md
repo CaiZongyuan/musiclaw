@@ -221,3 +221,25 @@
   - 重新把 `/root/Projects/Frontend/YesPlayMusic` 的路由、页面结构、全局壳体和关键交互定义为唯一产品基线；`docs/progress.md` 与计划文档统一改成 parity 驱动写法。
 - Prevention:
   - 后续每做一个页面，先看旧仓库对应源码，再记录“已对齐 / 功能已到位但未对齐 / 未实现”；不要在 parity 未建立前继续扩展非原版能力。
+
+## 用户名只读登录应以 profile 作为会话基准
+
+- Context:
+  - 旧版 `YesPlayMusic` 的 `/login/username` 并不写入账号 cookie，而是只记录选中的公开用户资料后进入 `Library`
+- Problem:
+  - 如果前端把“已登录”严格等同于 `rawCookie` / `MUSIC_U` 存在，那么用户名模式会被误判为未登录，导致 `/library` 和 `/library/liked-songs` 无法复用同一条浏览链路
+- Resolution:
+  - 将“活跃登录态”和“账号登录态”拆开：前者允许基于 `profile.userId` 成立，后者仍要求 cookie；`Library` 里对账号专属区块单独做 capability gate
+- Prevention:
+  - 后续凡是有“公开浏览模式”和“账号模式”并存的页面，都应先区分“能进入页面”和“能读私有数据”这两个判断，不要共用同一个 cookie 条件
+
+## 大歌单播放全部应按 trackIds 按需批量补全
+
+- Context:
+  - 喜欢歌曲歌单在大体量场景下，`/playlist/detail` 返回的 `tracks` 往往只覆盖前一段，完整列表需要依赖 `trackIds`
+- Problem:
+  - 如果“播放全部”直接基于当前页或当前已加载的 `tracks` 构建队列，会让 `/next` 和播放器都只拿到局部数据，看起来像“播放全部”失效
+- Resolution:
+  - 在点击“播放全部”时，基于 `trackIds` 找出缺失歌曲，按批次调用歌曲详情接口补齐，再按原始顺序重建完整队列
+- Prevention:
+  - 后续凡是面向大歌单的“播放全部 / 收藏全部 / 批量操作”，都优先以 `trackIds` 作为真实数据源，再把明细请求设计成批量补齐，而不是默认依赖第一页 `tracks`

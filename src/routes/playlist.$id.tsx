@@ -62,6 +62,7 @@ function PlaylistRoute() {
               <PlayTrackButton
                 track={track}
                 queue={tracks}
+                showPlayNext
                 className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>

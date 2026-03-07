@@ -21,6 +21,7 @@ describe('player store', () => {
     usePlayerStore.getState().loadQueueAndPlay(queue, 2)
 
     expect(usePlayerStore.getState().queue).toEqual(queue)
+    expect(usePlayerStore.getState().playNextQueue).toEqual([])
     expect(usePlayerStore.getState().currentTrackId).toBe(2)
     expect(usePlayerStore.getState().durationSeconds).toBe(2)
     expect(usePlayerStore.getState().isPlaying).toBe(true)
@@ -55,6 +56,22 @@ describe('player store', () => {
     expect(usePlayerStore.getState().isPlaying).toBe(true)
     expect(usePlayerStore.getState().progressSeconds).toBe(0)
     expect(usePlayerStore.getState().durationSeconds).toBe(2)
+  })
+
+  test('skipToNext prefers play-next queue before main queue', () => {
+    usePlayerStore.setState({
+      ...defaultPlayerSnapshot,
+      queue,
+      currentTrackId: 1,
+      isPlaying: true,
+      playNextQueue: [queue[2]],
+    })
+
+    usePlayerStore.getState().skipToNext()
+
+    expect(usePlayerStore.getState().currentTrackId).toBe(3)
+    expect(usePlayerStore.getState().playNextQueue).toEqual([])
+    expect(usePlayerStore.getState().durationSeconds).toBe(3)
   })
 
   test('skipToNext loops when repeatMode is all', () => {
@@ -142,5 +159,18 @@ describe('player store', () => {
 
     expect(usePlayerStore.getState().currentTrackId).toBe(1)
     expect(usePlayerStore.getState().durationSeconds).toBe(1)
+  })
+
+  test('enqueueToPlayNext appends a track to the insert queue', () => {
+    usePlayerStore.setState({
+      ...defaultPlayerSnapshot,
+      queue,
+      currentTrackId: 1,
+      isPlaying: true,
+    })
+
+    usePlayerStore.getState().enqueueToPlayNext(queue[2])
+
+    expect(usePlayerStore.getState().playNextQueue).toEqual([queue[2]])
   })
 })

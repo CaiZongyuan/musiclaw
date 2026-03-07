@@ -3,12 +3,25 @@ import { Link, Outlet, createFileRoute, useLocation } from '@tanstack/react-rout
 import { useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import PlayTrackButton from '#/features/player/components/play-track-button'
+import { hasAccountNeteaseSession, useAuthStore } from '#/features/auth/stores/auth-store'
+import type {
+  NeteaseAlbumSummary,
+  NeteaseArtistSummary,
+  NeteaseTrack,
+} from '#/features/music/api/types'
 import { playlistDetailQueryOptions } from '#/features/playlist/api/playlist-api'
-import { useAuthStore } from '#/features/auth/stores/auth-store'
-import { userPlaylistsQueryOptions } from '#/features/user/api/user-api'
-import type { NeteaseTrack } from '#/features/music/api/types'
+import {
+  likedAlbumsQueryOptions,
+  likedArtistsQueryOptions,
+  type UserPlayHistoryItem,
+  userPlayHistoryQueryOptions,
+  userPlaylistsQueryOptions,
+} from '#/features/user/api/user-api'
 
 export const Route = createFileRoute('/library')({ component: LibraryRoute })
+
+const DEFAULT_AVATAR_URL =
+  'https://s4.music.126.net/style/web2/img/default/default_avatar.jpg?param=120y120'
 
 function LoginRequiredState() {
   return (
@@ -18,7 +31,7 @@ function LoginRequiredState() {
         登录后才能查看你的音乐库
       </h1>
       <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--sea-ink-soft)] sm:text-base">
-        这一页现在已经开始接旧版的用户音乐库链路。登录后会优先展示喜欢的歌曲和你的歌单列表。
+        这一页现在已经开始接旧版的用户音乐库链路。登录后会优先展示喜欢的歌曲、歌单、收藏专辑、收藏艺人和播放历史。
       </p>
       <div className="mt-6 flex flex-wrap gap-3">
         <Link to="/login" className="app-chip">
@@ -32,17 +45,112 @@ function LoginRequiredState() {
   )
 }
 
+function AccountOnlyState({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
+  return (
+    <div className="library-empty-state">
+      <p className="m-0 text-sm font-semibold text-[var(--sea-ink)]">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-[var(--sea-ink-soft)]">{description}</p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Link to="/login/account" className="app-chip">
+          账号登录
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+function CollectionCoverCard({
+  title,
+  subtitle,
+  imageUrl,
+  to,
+  id,
+}: {
+  title: string
+  subtitle: string
+  imageUrl?: string
+  to: '/album/$id' | '/artist/$id'
+  id: string
+}) {
+  return (
+    <Link to={to} params={{ id }} className="home-cover-card feature-card">
+      <div className="home-cover-card__artwork-shell">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={title}
+            className="home-cover-card__artwork"
+            loading="lazy"
+          />
+        ) : (
+          <div className="home-cover-card__artwork-placeholder">{title.slice(0, 1)}</div>
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="home-cover-card__title">{title}</p>
+        <p className="home-cover-card__subtitle">{subtitle}</p>
+      </div>
+    </Link>
+  )
+}
+
+function PlayHistorySection({ items }: { items: UserPlayHistoryItem[] }) {
+  const historyTracks = items.map((item) => item.song).filter(Boolean)
+
+  return items.length > 0 ? (
+    <div className="grid gap-3">
+      {items.slice(0, 8).map((item, index) => (
+        <article key={`${item.song.id}-${index}`} className="library-track-row">
+          <div className="min-w-0 flex-1">
+            <p className="library-track-row__title">
+              {index + 1}. {item.song.name}
+            </p>
+            <p className="library-track-row__meta">
+              {item.song.ar?.map((artist) => artist.name).join(' / ') ?? 'Unknown artist'}
+              {item.song.al?.name ? ` · ${item.song.al.name}` : ''}
+              {` · 播放 ${item.playCount} 次`}
+            </p>
+          </div>
+          <PlayTrackButton
+            track={item.song}
+            queue={historyTracks}
+            showPlayNext
+            className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </article>
+      ))}
+    </div>
+  ) : (
+    <div className="library-empty-state">当前还没有拿到最近播放记录。</div>
+  )
+}
+
 function LibraryRoute() {
   const location = useLocation()
   const isClient = typeof window !== 'undefined'
-  const { profile, rawCookie } = useAuthStore(
+  const { loginMode, musicU, profile, rawCookie } = useAuthStore(
     useShallow((state) => ({
+      loginMode: state.loginMode,
+      musicU: state.musicU,
       profile: state.profile,
       rawCookie: state.rawCookie,
     })),
   )
 
-  const hasSession = Boolean(rawCookie && profile?.userId)
+  const hasSession = Boolean(profile?.userId)
+  const hasAccountSession = hasAccountNeteaseSession({
+    loginMode,
+    profile,
+    musicU,
+    csrfToken: null,
+    rawCookie,
+  })
   const userId = profile?.userId ?? null
 
   const playlistsQuery = useQuery({
@@ -58,11 +166,38 @@ function LibraryRoute() {
     enabled: Boolean(likedSongsPlaylist?.id),
   })
 
+  const likedAlbumsQuery = useQuery({
+    ...likedAlbumsQueryOptions(8),
+    enabled: isClient && hasAccountSession,
+  })
+
+  const likedArtistsQuery = useQuery({
+    ...likedArtistsQueryOptions(8),
+    enabled: isClient && hasAccountSession,
+  })
+
+  const playHistoryQuery = useQuery({
+    ...userPlayHistoryQueryOptions(userId ?? 0, 1),
+    enabled: isClient && hasAccountSession && userId !== null,
+  })
+
   const likedTracks = useMemo(
     () => (likedSongsQuery.data?.playlist.tracks ?? []) as NeteaseTrack[],
     [likedSongsQuery.data],
   )
   const playlistGroups = playlists.slice(1, 13)
+  const likedAlbums = useMemo(
+    () => (likedAlbumsQuery.data?.data ?? []) as NeteaseAlbumSummary[],
+    [likedAlbumsQuery.data],
+  )
+  const likedArtists = useMemo(
+    () => (likedArtistsQuery.data?.data ?? []) as NeteaseArtistSummary[],
+    [likedArtistsQuery.data],
+  )
+  const weeklyHistory = useMemo(
+    () => (playHistoryQuery.data?.weekData ?? []) as UserPlayHistoryItem[],
+    [playHistoryQuery.data],
+  )
 
   if (location.pathname !== '/library') {
     return <Outlet />
@@ -77,7 +212,7 @@ function LibraryRoute() {
       <section className="library-header island-shell rounded-[2rem] p-6 sm:p-8">
         <div className="library-header__inner">
           <img
-            src={profile?.avatarUrl ? `${profile.avatarUrl}?param=120y120` : 'https://s4.music.126.net/style/web2/img/default/default_avatar.jpg?param=120y120'}
+            src={profile?.avatarUrl ? `${profile.avatarUrl}?param=120y120` : DEFAULT_AVATAR_URL}
             alt={profile?.nickname ?? 'User avatar'}
             className="library-header__avatar"
             loading="lazy"
@@ -88,8 +223,13 @@ function LibraryRoute() {
               {profile?.nickname ?? 'My'} 的音乐库
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--sea-ink-soft)] sm:text-base">
-              这一页先恢复旧版音乐库最核心的链路：喜欢的歌曲入口和用户歌单列表。后续继续补专辑、艺人、MV 和播放历史。
+              这一页继续向旧版 Library 收口：除了喜欢的歌曲和歌单，现在也恢复收藏专辑、收藏艺人和最近播放预览。
             </p>
+            {loginMode === 'username' ? (
+              <div className="library-mode-note mt-4 rounded-[1rem] border border-[var(--line)] bg-[rgba(255,255,255,0.44)] px-4 py-3 text-sm text-[var(--sea-ink-soft)]">
+                当前是用户名只读模式：公开歌单与喜欢歌曲入口可用，收藏专辑、收藏艺人和播放历史需要账号登录。
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
@@ -143,6 +283,7 @@ function LibraryRoute() {
                     <PlayTrackButton
                       track={track}
                       queue={likedTracks}
+                      showPlayNext
                       className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </article>
@@ -199,6 +340,89 @@ function LibraryRoute() {
         ) : (
           <div className="library-empty-state">当前还没有拿到你的歌单列表。</div>
         )}
+      </section>
+
+      <section className="library-section library-collection-section">
+        <div className="library-collection-card island-shell rounded-[1.75rem] p-5">
+          <div className="library-section__header">
+            <h2 className="library-section__title">收藏专辑</h2>
+            <span className="library-section__count">{likedAlbums.length} 张</span>
+          </div>
+          {!hasAccountSession ? (
+            <AccountOnlyState
+              title="收藏专辑需要账号登录"
+              description="用户名只读模式下无法读取收藏专辑列表。使用 `/login/account` 登录后，这里会恢复成旧版的专辑分区。"
+            />
+          ) : likedAlbumsQuery.isLoading ? (
+            <div className="library-empty-state">正在加载收藏专辑…</div>
+          ) : likedAlbums.length > 0 ? (
+            <div className="home-cover-grid library-collection-grid">
+              {likedAlbums.map((album) => (
+                <CollectionCoverCard
+                  key={album.id}
+                  id={String(album.id)}
+                  to="/album/$id"
+                  imageUrl={album.picUrl ?? album.blurPicUrl}
+                  title={album.name}
+                  subtitle={
+                    album.artist?.name ?? album.artists?.map((artist) => artist.name).join(' / ') ?? 'Album'
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="library-empty-state">当前还没有拿到收藏专辑列表。</div>
+          )}
+        </div>
+
+        <div className="library-collection-card island-shell rounded-[1.75rem] p-5">
+          <div className="library-section__header">
+            <h2 className="library-section__title">收藏艺人</h2>
+            <span className="library-section__count">{likedArtists.length} 位</span>
+          </div>
+          {!hasAccountSession ? (
+            <AccountOnlyState
+              title="收藏艺人需要账号登录"
+              description="用户名只读模式下无法读取收藏艺人列表。账号登录后，这里会显示更接近旧版的艺人分区。"
+            />
+          ) : likedArtistsQuery.isLoading ? (
+            <div className="library-empty-state">正在加载收藏艺人…</div>
+          ) : likedArtists.length > 0 ? (
+            <div className="home-cover-grid home-cover-grid--artists library-collection-grid">
+              {likedArtists.map((artist) => (
+                <CollectionCoverCard
+                  key={artist.id}
+                  id={String(artist.id)}
+                  to="/artist/$id"
+                  imageUrl={artist.picUrl ?? artist.img1v1Url ?? artist.cover}
+                  title={artist.name}
+                  subtitle={artist.alias?.join(' / ') || 'Artist'}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="library-empty-state">当前还没有拿到收藏艺人列表。</div>
+          )}
+        </div>
+      </section>
+
+      <section className="library-section">
+        <div className="library-collection-card island-shell rounded-[1.75rem] p-5">
+          <div className="library-section__header">
+            <h2 className="library-section__title">最近播放</h2>
+            <span className="library-section__count">{weeklyHistory.length} 首</span>
+          </div>
+          {!hasAccountSession ? (
+            <AccountOnlyState
+              title="播放历史需要账号登录"
+              description="旧版 Library 的播放历史属于账号态内容。完成账号登录后，这里会显示最近一周的播放记录预览。"
+            />
+          ) : playHistoryQuery.isLoading ? (
+            <div className="library-empty-state">正在加载播放历史…</div>
+          ) : (
+            <PlayHistorySection items={weeklyHistory} />
+          )}
+        </div>
       </section>
     </div>
   )

@@ -17,6 +17,7 @@ export interface PlayerTrack {
 
 export interface PlayerStoreSnapshot {
   queue: PlayerTrack[]
+  playNextQueue: PlayerTrack[]
   currentTrackId: number | null
   isPlaying: boolean
   volume: number
@@ -27,11 +28,14 @@ export interface PlayerStoreSnapshot {
 }
 
 interface PlayerStoreActions {
+  clearPlayNextQueue: () => void
   cycleRepeatMode: () => void
+  enqueueToPlayNext: (track: PlayerTrack) => void
   loadQueueAndPlay: (queue: PlayerTrack[], currentTrackId?: number | null) => void
   pause: () => void
   play: () => void
   playTrack: (trackId: number) => void
+  removeTrackFromPlayNext: (trackId: number) => void
   removeTrackFromQueue: (trackId: number) => void
   resetPlayer: () => void
   seekTo: (progressSeconds: number) => void
@@ -52,6 +56,7 @@ export type PlayerStoreState = PlayerStoreSnapshot & PlayerStoreActions
 
 export const defaultPlayerSnapshot: PlayerStoreSnapshot = {
   queue: [],
+  playNextQueue: [],
   currentTrackId: null,
   isPlaying: false,
   volume: 1,
@@ -134,15 +139,50 @@ function getRandomTrackId(
   return availableTrackIds[randomIndex] ?? fallbackTrackId
 }
 
+function upsertTrack(queue: PlayerTrack[], track: PlayerTrack) {
+  const index = queue.findIndex((item) => item.id === track.id)
+
+  if (index === -1) {
+    return [...queue, track]
+  }
+
+  return queue.map((item) => (item.id === track.id ? { ...item, ...track } : item))
+}
+
 export const usePlayerStore = create<PlayerStoreState>()(
   persist(
     (set) => ({
       ...defaultPlayerSnapshot,
+      clearPlayNextQueue: () => set({ playNextQueue: [] }),
       cycleRepeatMode: () =>
         set((state) => ({ repeatMode: getNextRepeatMode(state.repeatMode) })),
+      enqueueToPlayNext: (track) =>
+        set((state) => {
+          if (state.queue.length === 0 || state.currentTrackId === null) {
+            return {
+              queue: [track],
+              playNextQueue: [],
+              currentTrackId: track.id,
+              isPlaying: true,
+              progressSeconds: 0,
+              durationSeconds: resolveDurationSeconds([track], track.id),
+            }
+          }
+
+          return {
+            queue: upsertTrack(state.queue, track),
+            playNextQueue: [
+              ...state.playNextQueue.filter(
+                (item) => item.id !== track.id && item.id !== state.currentTrackId,
+              ),
+              track,
+            ],
+          }
+        }),
       loadQueueAndPlay: (queue, currentTrackId = queue[0]?.id ?? null) =>
         set({
           queue,
+          playNextQueue: [],
           currentTrackId,
           isPlaying: currentTrackId !== null,
           progressSeconds: 0,
@@ -157,19 +197,27 @@ export const usePlayerStore = create<PlayerStoreState>()(
           progressSeconds: 0,
           durationSeconds: resolveDurationSeconds(state.queue, trackId),
         })),
+      removeTrackFromPlayNext: (trackId) =>
+        set((state) => ({
+          playNextQueue: state.playNextQueue.filter((track) => track.id !== trackId),
+        })),
       removeTrackFromQueue: (trackId) =>
         set((state) => {
           const removedIndex = state.queue.findIndex((track) => track.id === trackId)
 
           if (removedIndex === -1) {
-            return state
+            return {
+              playNextQueue: state.playNextQueue.filter((track) => track.id !== trackId),
+            }
           }
 
           const nextQueue = state.queue.filter((track) => track.id !== trackId)
+          const nextPlayNextQueue = state.playNextQueue.filter((track) => track.id !== trackId)
 
           if (nextQueue.length === 0) {
             return {
               queue: [],
+              playNextQueue: [],
               currentTrackId: null,
               isPlaying: false,
               progressSeconds: 0,
@@ -180,6 +228,7 @@ export const usePlayerStore = create<PlayerStoreState>()(
           if (state.currentTrackId !== trackId) {
             return {
               queue: nextQueue,
+              playNextQueue: nextPlayNextQueue,
             }
           }
 
@@ -188,6 +237,7 @@ export const usePlayerStore = create<PlayerStoreState>()(
 
           return {
             queue: nextQueue,
+            playNextQueue: nextPlayNextQueue,
             currentTrackId: fallbackTrack?.id ?? null,
             isPlaying: fallbackTrack ? state.isPlaying : false,
             progressSeconds: 0,
@@ -218,6 +268,7 @@ export const usePlayerStore = create<PlayerStoreState>()(
       setQueue: (queue, currentTrackId = queue[0]?.id ?? null) =>
         set({
           queue,
+          playNextQueue: [],
           currentTrackId,
           progressSeconds: 0,
           durationSeconds: resolveDurationSeconds(queue, currentTrackId),
@@ -229,6 +280,9 @@ export const usePlayerStore = create<PlayerStoreState>()(
           queue: state.queue.map((track) =>
             track.id === trackId ? { ...track, sourceUrl } : track,
           ),
+          playNextQueue: state.playNextQueue.map((track) =>
+            track.id === trackId ? { ...track, sourceUrl } : track,
+          ),
         })),
       setVolume: (volume) => set({ volume: clampVolume(volume) }),
       skipToNext: () =>
@@ -237,10 +291,6 @@ export const usePlayerStore = create<PlayerStoreState>()(
             return state
           }
 
-          const currentIndex = getCurrentTrackIndex(
-            state.queue,
-            state.currentTrackId,
-          )
           const fallbackTrack = state.queue[0]
 
           if (state.repeatMode === 'one' && state.currentTrackId !== null) {
@@ -253,6 +303,25 @@ export const usePlayerStore = create<PlayerStoreState>()(
               isPlaying: true,
             }
           }
+
+          if (state.playNextQueue.length > 0) {
+            const [nextPlayTrack, ...restPlayNextQueue] = state.playNextQueue
+            const nextQueue = upsertTrack(state.queue, nextPlayTrack)
+
+            return {
+              queue: nextQueue,
+              playNextQueue: restPlayNextQueue,
+              currentTrackId: nextPlayTrack.id,
+              progressSeconds: 0,
+              durationSeconds: resolveDurationSeconds(nextQueue, nextPlayTrack.id),
+              isPlaying: true,
+            }
+          }
+
+          const currentIndex = getCurrentTrackIndex(
+            state.queue,
+            state.currentTrackId,
+          )
 
           if (state.shuffleEnabled && state.queue.length > 1) {
             const nextTrackId = getRandomTrackId(
@@ -367,6 +436,7 @@ export const usePlayerStore = create<PlayerStoreState>()(
       storage: createBrowserJsonStorage<PlayerStoreSnapshot>(),
       partialize: (state) => ({
         queue: state.queue,
+        playNextQueue: state.playNextQueue,
         currentTrackId: state.currentTrackId,
         volume: state.volume,
         progressSeconds: state.progressSeconds,

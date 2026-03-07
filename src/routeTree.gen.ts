@@ -20,6 +20,8 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlaylistIdRouteImport } from './routes/playlist.$id'
 import { Route as MvIdRouteImport } from './routes/mv.$id'
+import { Route as LoginUsernameRouteImport } from './routes/login.username'
+import { Route as LoginAccountRouteImport } from './routes/login.account'
 import { Route as LibraryLikedSongsRouteImport } from './routes/library.liked-songs'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoI18nRouteImport } from './routes/demo.i18n'
@@ -84,6 +86,16 @@ const MvIdRoute = MvIdRouteImport.update({
   path: '/mv/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginUsernameRoute = LoginUsernameRouteImport.update({
+  id: '/username',
+  path: '/username',
+  getParentRoute: () => LoginRoute,
+} as any)
+const LoginAccountRoute = LoginAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => LoginRoute,
+} as any)
 const LibraryLikedSongsRoute = LibraryLikedSongsRouteImport.update({
   id: '/liked-songs',
   path: '/liked-songs',
@@ -130,7 +142,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/explore': typeof ExploreRoute
   '/library': typeof LibraryRouteWithChildren
-  '/login': typeof LoginRoute
+  '/login': typeof LoginRouteWithChildren
   '/new-album': typeof NewAlbumRoute
   '/next': typeof NextRoute
   '/search': typeof SearchRoute
@@ -142,6 +154,8 @@ export interface FileRoutesByFullPath {
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/library/liked-songs': typeof LibraryLikedSongsRoute
+  '/login/account': typeof LoginAccountRoute
+  '/login/username': typeof LoginUsernameRoute
   '/mv/$id': typeof MvIdRoute
   '/playlist/$id': typeof PlaylistIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -151,7 +165,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/explore': typeof ExploreRoute
   '/library': typeof LibraryRouteWithChildren
-  '/login': typeof LoginRoute
+  '/login': typeof LoginRouteWithChildren
   '/new-album': typeof NewAlbumRoute
   '/next': typeof NextRoute
   '/search': typeof SearchRoute
@@ -163,6 +177,8 @@ export interface FileRoutesByTo {
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/library/liked-songs': typeof LibraryLikedSongsRoute
+  '/login/account': typeof LoginAccountRoute
+  '/login/username': typeof LoginUsernameRoute
   '/mv/$id': typeof MvIdRoute
   '/playlist/$id': typeof PlaylistIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -173,7 +189,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/explore': typeof ExploreRoute
   '/library': typeof LibraryRouteWithChildren
-  '/login': typeof LoginRoute
+  '/login': typeof LoginRouteWithChildren
   '/new-album': typeof NewAlbumRoute
   '/next': typeof NextRoute
   '/search': typeof SearchRoute
@@ -185,6 +201,8 @@ export interface FileRoutesById {
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/library/liked-songs': typeof LibraryLikedSongsRoute
+  '/login/account': typeof LoginAccountRoute
+  '/login/username': typeof LoginUsernameRoute
   '/mv/$id': typeof MvIdRoute
   '/playlist/$id': typeof PlaylistIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -208,6 +226,8 @@ export interface FileRouteTypes {
     | '/demo/i18n'
     | '/demo/tanstack-query'
     | '/library/liked-songs'
+    | '/login/account'
+    | '/login/username'
     | '/mv/$id'
     | '/playlist/$id'
     | '/api/auth/$'
@@ -229,6 +249,8 @@ export interface FileRouteTypes {
     | '/demo/i18n'
     | '/demo/tanstack-query'
     | '/library/liked-songs'
+    | '/login/account'
+    | '/login/username'
     | '/mv/$id'
     | '/playlist/$id'
     | '/api/auth/$'
@@ -250,6 +272,8 @@ export interface FileRouteTypes {
     | '/demo/i18n'
     | '/demo/tanstack-query'
     | '/library/liked-songs'
+    | '/login/account'
+    | '/login/username'
     | '/mv/$id'
     | '/playlist/$id'
     | '/api/auth/$'
@@ -260,7 +284,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   ExploreRoute: typeof ExploreRoute
   LibraryRoute: typeof LibraryRouteWithChildren
-  LoginRoute: typeof LoginRoute
+  LoginRoute: typeof LoginRouteWithChildren
   NewAlbumRoute: typeof NewAlbumRoute
   NextRoute: typeof NextRoute
   SearchRoute: typeof SearchRoute
@@ -355,6 +379,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MvIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login/username': {
+      id: '/login/username'
+      path: '/username'
+      fullPath: '/login/username'
+      preLoaderRoute: typeof LoginUsernameRouteImport
+      parentRoute: typeof LoginRoute
+    }
+    '/login/account': {
+      id: '/login/account'
+      path: '/account'
+      fullPath: '/login/account'
+      preLoaderRoute: typeof LoginAccountRouteImport
+      parentRoute: typeof LoginRoute
+    }
     '/library/liked-songs': {
       id: '/library/liked-songs'
       path: '/liked-songs'
@@ -425,12 +463,24 @@ const LibraryRouteChildren: LibraryRouteChildren = {
 const LibraryRouteWithChildren =
   LibraryRoute._addFileChildren(LibraryRouteChildren)
 
+interface LoginRouteChildren {
+  LoginAccountRoute: typeof LoginAccountRoute
+  LoginUsernameRoute: typeof LoginUsernameRoute
+}
+
+const LoginRouteChildren: LoginRouteChildren = {
+  LoginAccountRoute: LoginAccountRoute,
+  LoginUsernameRoute: LoginUsernameRoute,
+}
+
+const LoginRouteWithChildren = LoginRoute._addFileChildren(LoginRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   ExploreRoute: ExploreRoute,
   LibraryRoute: LibraryRouteWithChildren,
-  LoginRoute: LoginRoute,
+  LoginRoute: LoginRouteWithChildren,
   NewAlbumRoute: NewAlbumRoute,
   NextRoute: NextRoute,
   SearchRoute: SearchRoute,

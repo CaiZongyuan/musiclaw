@@ -1,5 +1,25 @@
 # Progress
 
+## 2026-03-07（第六轮功能收口：登录分流 / Library 扩展 / play-next 队列）
+
+- Done:
+  - 恢复旧版登录分流路径：`/login`、`/login/account`、`/login/username`
+  - 将原可用登录逻辑下沉到 `/login/account`，继续支持二维码、手机号、邮箱登录
+  - 新增用户名只读登录模式：可搜索公开用户并写入 `profile` + `loginMode=username` 后进入 `/library`
+  - `/library` 继续补齐旧版结构，新增收藏专辑、收藏艺人、最近播放预览，并对用户名模式显示账号登录提示
+  - `/library/liked-songs` 的“播放全部”改为按 `trackIds` 分批补齐歌曲详情后构建完整播放队列，不再只依赖当前页
+  - 播放器状态新增 `playNextQueue`，`/next` 现在支持“Now Playing / 插队播放 / Next Up”三段结构
+  - 顶栏补回头像菜单交互，首页 `by Apple Music` 改回旧版静态卡片数据，播放器队列按钮增加插队数量提示
+  - 已运行 `bunx vitest run`，当前 8 个测试文件共 31 个测试全部通过
+  - 已运行 `./node_modules/.bin/tsc --noEmit`，当前 TypeScript 校验通过
+- In progress:
+  - 等待真实浏览器手测，确认登录分流、用户名模式、Library 扩展和 play-next 队列行为
+- Next:
+  - 根据手测结果继续微调 Navbar / Player / 首页视觉细节
+  - 继续补旧版缺口，比如更完整的 `Library` 分区与更多播放器细节
+- Blockers:
+  - `bun run build` 仍被仓库既有问题阻塞：`src/routes/demo.i18n.tsx` 依赖的 `../logo.svg` 缺失，且 `wrangler` 在当前环境下无法写 `/root/.config/.wrangler/logs/*`
+
 ## 2026-03-07（第五轮修正：liked songs 分页）
 
 - Done:

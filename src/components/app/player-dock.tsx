@@ -39,6 +39,7 @@ export default function PlayerDock() {
     cycleRepeatMode,
     durationSeconds,
     isPlaying,
+    playNextQueue,
     progressSeconds,
     queue,
     repeatMode,
@@ -56,6 +57,7 @@ export default function PlayerDock() {
       cycleRepeatMode: state.cycleRepeatMode,
       durationSeconds: state.durationSeconds,
       isPlaying: state.isPlaying,
+      playNextQueue: state.playNextQueue,
       progressSeconds: state.progressSeconds,
       queue: state.queue,
       repeatMode: state.repeatMode,
@@ -169,7 +171,7 @@ export default function PlayerDock() {
                 {currentTrack?.artists.join(', ') ?? '从首页、搜索页或详情页点击播放后会出现在这里'}
               </p>
               <p className="mt-1 truncate text-[11px] text-[var(--sea-ink-soft)]/80">
-                {currentTrack?.albumName ?? '本轮先向旧版底部播放器结构收口'}
+                {currentTrack?.albumName ?? '底部播放器正在继续向旧版结构收口'}
               </p>
               {lyricPreview.length && !isLyricsOpen ? (
                 <div className="mt-2 space-y-1">
@@ -224,11 +226,14 @@ export default function PlayerDock() {
             <button
               type="button"
               onClick={toggleNextQueuePage}
-              className={`player-dock__button ${location.pathname === '/next' ? 'player-dock__button--active' : ''}`}
+              className={`player-dock__button player-dock__queue-button ${location.pathname === '/next' ? 'player-dock__button--active' : ''}`}
               aria-label="Open next up queue"
               disabled={!hasTrack}
             >
               <ListMusic size={16} />
+              {playNextQueue.length > 0 ? (
+                <span className="player-dock__queue-badge">{playNextQueue.length}</span>
+              ) : null}
             </button>
             <button
               type="button"

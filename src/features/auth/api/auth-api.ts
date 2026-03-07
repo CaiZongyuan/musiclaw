@@ -35,6 +35,24 @@ interface LoginQrCheckResponse {
   msg?: string
 }
 
+export interface NeteaseSearchUserProfile {
+  userId: number
+  nickname: string
+  avatarUrl?: string
+  signature?: string
+  vipType?: number
+}
+
+interface UserSearchResponse {
+  code: number
+  result?: {
+    userprofiles?: NeteaseSearchUserProfile[]
+    userprofileCount?: number
+  }
+  message?: string
+  msg?: string
+}
+
 export async function loginWithPhone(params: {
   phone: string
   password: string
@@ -112,6 +130,22 @@ export async function fetchUserAccount() {
   })
 
   return response.data
+}
+
+export async function searchUsersByNickname(keyword: string, limit = 9) {
+  const response = await apiClient.get<UserSearchResponse>('/search', {
+    params: {
+      keywords: keyword.trim(),
+      type: 1002,
+      limit,
+      timestamp: Date.now(),
+    },
+    meta: {
+      attachRealIp: true,
+    },
+  })
+
+  return response.data.result?.userprofiles ?? []
 }
 
 export function sanitizeSerializedCookie(cookie: string) {
