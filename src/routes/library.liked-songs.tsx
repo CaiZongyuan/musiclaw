@@ -10,6 +10,10 @@ import { usePlayerStore } from '#/features/player/stores/player-store'
 import { playlistDetailQueryOptions } from '#/features/playlist/api/playlist-api'
 import { getTrackDetail, trackDetailQueryOptions } from '#/features/track/api/track-api'
 import { userPlaylistsQueryOptions } from '#/features/user/api/user-api'
+import {
+  remapTracksPlayableStatusForAuth,
+  usePlayableTracks,
+} from '#/lib/music/playability-client'
 
 export const Route = createFileRoute('/library/liked-songs')({
   component: LikedSongsRoute,
@@ -34,14 +38,18 @@ function LikedSongsRoute() {
   const [playAllError, setPlayAllError] = useState<string | null>(null)
   const [isBuildingFullQueue, setIsBuildingFullQueue] = useState(false)
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
-  const { profile } = useAuthStore(
+  const authSnapshot = useAuthStore(
     useShallow((state) => ({
+      csrfToken: state.csrfToken,
+      loginMode: state.loginMode,
+      musicU: state.musicU,
       profile: state.profile,
+      rawCookie: state.rawCookie,
     })),
   )
 
-  const hasSession = Boolean(profile?.userId)
-  const userId = profile?.userId ?? null
+  const hasSession = Boolean(authSnapshot.profile?.userId)
+  const userId = authSnapshot.profile?.userId ?? null
 
   const playlistsQuery = useQuery({
     ...userPlaylistsQueryOptions(userId ?? 0),
@@ -55,10 +63,11 @@ function LikedSongsRoute() {
     enabled: Boolean(likedSongsPlaylist?.id),
   })
 
-  const baseTracks = useMemo(
+  const baseTracksRaw = useMemo(
     () => (likedSongsQuery.data?.playlist.tracks ?? []) as NeteaseTrack[],
     [likedSongsQuery.data],
   )
+  const baseTracks = usePlayableTracks(baseTracksRaw)
 
   const playlistTrackIds = likedSongsQuery.data?.playlist.trackIds ?? []
   const totalTrackCount = likedSongsPlaylist?.trackCount ?? playlistTrackIds.length ?? baseTracks.length
@@ -83,6 +92,9 @@ function LikedSongsRoute() {
     ...trackDetailQueryOptions(missingPageTrackIds.join(',')),
     enabled: missingPageTrackIds.length > 0,
   })
+  const missingTracks = usePlayableTracks(
+    (missingTracksQuery.data?.songs ?? []) as NeteaseTrack[],
+  )
 
   const hydratedTrackMap = useMemo(() => {
     const map = new Map<number, NeteaseTrack>()
@@ -91,12 +103,12 @@ function LikedSongsRoute() {
       map.set(track.id, track)
     }
 
-    for (const track of missingTracksQuery.data?.songs ?? []) {
+    for (const track of missingTracks) {
       map.set(track.id, track)
     }
 
     return map
-  }, [baseTracks, missingTracksQuery.data])
+  }, [baseTracks, missingTracks])
 
   const currentPageTracks = useMemo(() => {
     if (pageTrackIds.length > 0) {
@@ -141,7 +153,11 @@ function LikedSongsRoute() {
         .map((trackId) => fullTrackMap.get(trackId))
         .filter((track): track is NeteaseTrack => Boolean(track))
 
-      const queueTracks = fullQueueTracks.length > 0 ? fullQueueTracks : baseTracks
+      const queueTracks = remapTracksPlayableStatusForAuth(
+        fullQueueTracks.length > 0 ? fullQueueTracks : baseTracksRaw,
+        authSnapshot,
+      )
+
       loadQueueAndPlay(buildPlayerQueueFromTracks(queueTracks), undefined, { label: '我喜欢的音乐', to: '/library/liked-songs' })
     } catch (error) {
       setPlayAllError(error instanceof Error ? error.message : '构建完整播放队列失败，请稍后重试')
@@ -236,6 +252,18 @@ function LikedSongsRoute() {
           ) : currentPageTracks.length > 0 ? (
             currentPageTracks.map((track, index) => (
               <article key={track.id} className="library-track-row">
+                <div className="library-track-row__cover-shell">
+                  {track.al?.picUrl ?? track.album?.picUrl ? (
+                    <img
+                      src={track.al?.picUrl ?? track.album?.picUrl}
+                      alt={track.name}
+                      className="library-track-row__cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="library-track-row__cover-placeholder">{track.name.slice(0, 1)}</div>
+                  )}
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="library-track-row__title">
                     {pageStartIndex + index + 1}. {track.name}

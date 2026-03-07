@@ -1,194 +1,166 @@
 # Music Claw
 
-> **YesPlayMusic** React 重写版 — 基于 TanStack Start 的现代化网易云音乐播放器
+**[English](README.md) | 中文**
 
-这是将 [YesPlayMusic](https://github.com/qier222/YesPlayMusic) 从 **Vue 2** 迁移到 **React + TanStack Start** 的 Web 重写项目。
+一个基于 `TanStack Start`、`React 19` 和 `Bun` 的 [YesPlayMusic](https://github.com/qier222/YesPlayMusic) Web 端对齐式重写项目。
 
----
+本项目的目标不是做一个“参考 YesPlayMusic 的新产品”，而是把原版 Vue 2 Web 体验迁移到支持 SSR 的现代 React 技术栈中，并尽量保持原版路由、应用壳体和播放主链路的一致性。
 
-## 为什么选择 TanStack Start？
+## 当前状态
 
-[TanStack Start](https://tanstack.com/start/latest) 是一个全新的全栈 React 框架，相比传统的 Vue SPA 架构，它带来了诸多优势：
-
-### 核心特性
-
-| 特性 | 说明 |
-|------|------|
-| **全文档 SSR** | 服务端渲染带来更快的首屏加载和更好的 SEO |
-| **Streaming** | 渐进式页面加载，用户体验更流畅 |
-| **类型安全的路由** | 基于 TanStack Router，全链路 TypeScript 类型推导 |
-| **Server Functions** | 类型安全的客户端-服务器 RPC 调用 |
-| **文件路由** | 类似 Next.js 的文件系统路由，直观清晰 |
-| **内置数据加载** | Loader 预加载数据，避免页面闪烁 |
-| **搜索参数管理** | 类型安全的 URL 搜索参数处理 |
-| **代码分割** | 自动按路由分割，优化加载性能 |
-| **全栈打包** | 基于 Vite，客户端和服务端代码统一构建 |
-| **通用部署** | 部署到任何支持 Vite 的托管平台（本项目使用 Cloudflare Workers） |
-
-### 与 Vue 方案的对比
-
-| Vue 2 (原项目) | TanStack Start (本项目) |
-|---------------|------------------------|
-| Vue Router | TanStack Router（类型安全） |
-| Vuex | Zustand + TanStack Query |
-| vue-i18n | ParaglideJS |
-| Vue CLI | Vite（更快的热更新） |
-| SPA（单页应用） | SSR + SPA 混合 |
-| 无类型安全 | 端到端类型安全 |
-
----
+- 当前是 YesPlayMusic Web 端的持续重写，不是全新产品线
+- 现阶段重点在应用壳体、首页、搜索、歌单、专辑、艺人、登录、个人库、每日推荐、发现页和队列页的 parity 收口
+- 剩余差异、阻塞和下一步计划统一记录在 `docs/progress.md` 与 `docs/navbar-player-home-parity.md`
 
 ## 技术栈
 
-```json
-{
-  "框架": "TanStack Start + React 19",
-  "路由": "TanStack Router (文件路由)",
-  "状态管理": "Zustand + TanStack Query",
-  "样式": "Tailwind CSS v4 + Shadcn UI",
-  "播放器": "Howler.js",
-  "本地存储": "Dexie (IndexedDB)",
-  "国际化": "ParaglideJS",
-  "认证": "Better Auth",
-  "测试": "Vitest",
-  "部署": "Cloudflare Workers"
-}
-```
+- `TanStack Start` + `React 19`：SSR 与文件路由
+- `TanStack Router` + `TanStack Query`：路由与数据获取
+- `Zustand`：播放器和账号态状态管理
+- `Better Auth`：应用侧认证基础设施
+- `ParaglideJS`：英文与德文本地化
+- `Tailwind CSS v4` + Shadcn UI 模式：样式与基础组件
+- `Howler.js`：音频播放
+- `Dexie`：浏览器本地持久化
+- `Cloudflare Workers` + `wrangler`：部署目标
 
----
+## 环境要求
 
-## 快速开始
+- `Bun`
+- `Node.js 18+`
+- 一个独立运行的网易云 API 服务
 
-### 环境要求
+## 环境变量
 
-- [Bun](https://bun.sh/) (推荐) 或 pnpm
-- Node.js 18+
-
-### 安装依赖
-
-```bash
-bun install
-```
-
-### 配置环境变量
-
-复制 `.env.example` 到 `.env.local`，配置网易云 API 地址：
+先从 `.env.example` 创建 `.env.local`：
 
 ```bash
 cp .env.example .env.local
 ```
 
-### 启动开发服务器
+必填变量：
+
+```bash
+NETEASE_API_URL=http://127.0.0.1:3002
+```
+
+可选的客户端覆盖项：
+
+```bash
+VITE_NETEASE_API_URL=http://127.0.0.1:3001
+VITE_REAL_IP=211.161.244.70
+```
+
+如果你的本地 API 服务启用了 Swagger，一般可以在 `http://localhost:3002/docs/` 查看接口文档。
+
+## 快速开始
+
+安装依赖：
+
+```bash
+bun install
+```
+
+启动本地开发服务器，默认端口 `3000`：
 
 ```bash
 bun run dev
 ```
 
-访问 http://localhost:3000
+运行测试：
 
-### 构建生产版本
+```bash
+bun run test
+```
+
+构建并预览生产版本：
 
 ```bash
 bun run build
 bun run preview
 ```
 
-### 部署到 Cloudflare Workers
+部署到 Cloudflare Workers：
 
 ```bash
 bun run deploy
 ```
-
----
-
-## 项目结构
-
-```
-src/
-├── components/          # 可复用组件
-│   ├── app/            # 应用级组件
-│   └── ui/             # UI 组件 (Shadcn)
-├── features/           # 业务功能模块
-│   ├── player/         # 播放器
-│   ├── auth/           # 认证
-│   ├── music/          # 音乐 API
-│   └── track/          # 歌曲详情
-├── lib/                # 工具库
-│   ├── api/            # API 客户端
-│   ├── db/             # 数据库 (Dexie)
-│   └── constants/      # 常量
-├── routes/             # 文件路由
-│   ├── __root.tsx      # 根布局
-│   ├── index.tsx       # 首页
-│   └── ...
-└── paraglide/          # 国际化 (自动生成)
-```
-
----
-
-## 开发进度
-
-项目正在分阶段迁移中，详细进度请查看 [`docs/progress.md`](docs/progress.md)。
-
-- [x] Phase 0: 基础设施
-- [x] Phase 1: 路由与页面骨架
-- [x] Phase 2: 只读 API 迁移
-- [ ] Phase 3: 播放器核心 (进行中)
-- [ ] Phase 4: 核心页面功能
-- [ ] Phase 5: 登录与用户能力
-- [ ] Phase 6: 设置与缓存
-- [ ] Phase 7: 扩展功能
-
----
 
 ## 常用命令
 
 ```bash
-# 开发
-bun run dev
-
-# 构建
-bun run build
-
-# 预览
-bun run preview
-
-# 测试
-bun run test
-
-# 代码检查
-bun run lint
-bun run format
-bun run check
-
-# 部署
-bun run deploy
+bun run dev      # 启动本地开发服务器
+bun run build    # 构建生产包
+bun run preview  # 预览生产构建
+bun run test     # 运行 Vitest
+bun run lint     # 运行 ESLint
+bun run format   # 运行 Prettier 检查
+bun run check    # 执行 Prettier 写入并运行 ESLint --fix
+bun run deploy   # 构建并通过 Wrangler 部署
 ```
 
----
+## 项目结构
 
-## 文档
+```text
+src/
+├── components/                     # 应用壳体与共享 UI
+├── features/                       # 业务模块（auth、player、album、artist、playlist、search 等）
+├── integrations/                   # TanStack Query / Better Auth 集成层
+├── lib/                            # API 客户端、工具函数、主题、存储、音乐能力
+├── routes/                         # TanStack Start 文件路由
+├── paraglide/                      # 自动生成的 i18n runtime（不要手改）
+messages/                           # 翻译源文件
+project.inlang/                     # Paraglide 配置
+wrangler.jsonc                      # Cloudflare Workers 部署配置
+```
 
-- [迁移分析](docs/yesplaymusic-web-rewrite-analysis.md) — 依赖替换与架构决策
-- [开发计划](docs/yesplaymusic-web-rewrite-plan.md) — 分阶段实施计划
-- [进度追踪](docs/progress.md) — 当前开发状态
-- [协作规范](docs/developer-collaboration.md) — 开发协作流程
+主路径别名：
 
----
+- `#/*` → `src/*`
+
+## 路由覆盖
+
+当前已经覆盖一批关键的 YesPlayMusic Web 路由：
+
+- `/` 首页
+- `/search` 搜索
+- `/playlist/$id` 歌单详情
+- `/album/$id` 专辑详情
+- `/artist/$id` 艺人详情
+- `/daily/songs` 每日推荐
+- `/new-album` 新专辑
+- `/explore` 发现
+- `/next` 播放队列
+- `/library` 与 `/library/liked-songs` 个人库
+- `/login`、`/login/account`、`/login/username` 登录流
+
+部分次级页面与交互细节仍在继续向原版收口。
+
+## 协作文档
+
+继续开发前，建议按下面顺序阅读：
+
+- `docs/yesplaymusic-web-rewrite-analysis.md` — 重写原则与产品基线
+- `docs/yesplaymusic-web-rewrite-plan.md` — 分阶段计划
+- `docs/progress.md` — 当前进度、阻塞与下一步
+- `docs/lessons-learned.md` — 可复用的坑点与修复经验
+- `docs/developer-collaboration.md` — 仓库协作流程
+- `docs/navbar-player-home-parity.md` — 主壳体 UI 对齐记录
+
+## 说明
+
+- 本仓库统一使用 `bun` 进行依赖管理和脚本执行
+- `src/paraglide/` 是生成代码，不要手动修改
+- 播放能力会受到浏览器本地网易云账号态影响，因此部分音源请求会故意放在客户端执行
 
 ## 相关链接
 
-- [TanStack Start 文档](https://tanstack.com/start/latest)
-- [TanStack Router 文档](https://tanstack.com/router/latest)
-- [YesPlayMusic 原项目](https://github.com/qier222/YesPlayMusic)
-- [网易云音乐 API](https://github.com/Binaryify/NeteaseCloudMusicApi)
-
----
+- [YesPlayMusic](https://github.com/qier222/YesPlayMusic)
+- [TanStack Start](https://tanstack.com/start/latest)
+- [TanStack Router](https://tanstack.com/router/latest)
+- [ParaglideJS](https://inlang.com/m/gerre34r/library-inlang-paraglideJs)
+- [Better Auth](https://www.better-auth.com/)
 
 ## License
 
 MIT
-
----
-
-*这是一个学习与重构项目，感谢 YesPlayMusic 原作者的开源贡献。*

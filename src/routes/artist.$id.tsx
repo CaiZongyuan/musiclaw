@@ -1,6 +1,6 @@
+import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import RouteErrorState from '#/components/app/route-error-state'
-import RoutePlaceholder from '#/components/app/route-placeholder'
 import {
   artistAlbumsQueryOptions,
   artistDetailQueryOptions,
@@ -14,6 +14,7 @@ import { usePlayableTracks } from '#/lib/music/playability-client'
 import PlayTrackButton from '#/features/player/components/play-track-button'
 import { buildPlayerQueueFromTracks } from '#/features/player/lib/player-track'
 import { usePlayerStore } from '#/features/player/stores/player-store'
+import { trackDetailQueryOptions } from '#/features/track/api/track-api'
 
 interface ArtistRouteLoaderData {
   albums: Awaited<ReturnType<typeof fetchArtistAlbums>>
@@ -22,7 +23,7 @@ interface ArtistRouteLoaderData {
 
 function formatReleaseYear(timestamp?: number) {
   if (!timestamp) {
-    return '发行时间待补充'
+    return '年份待补充'
   }
 
   return `${new Date(timestamp).getFullYear()}`
@@ -47,175 +48,183 @@ export const Route = createFileRoute('/artist/$id')({
 function ArtistRoute() {
   const { albums, detail }: ArtistRouteLoaderData = Route.useLoaderData()
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
-  const tracks = usePlayableTracks(detail.hotSongs as NeteaseTrack[])
+  const hotSongIds = detail.hotSongs.map((track) => track.id).join(',')
+  const hotSongDetailsQuery = useQuery({
+    ...trackDetailQueryOptions(hotSongIds),
+    enabled: hotSongIds.length > 0,
+  })
+  const tracks = usePlayableTracks(
+    ((hotSongDetailsQuery.data?.songs?.length
+      ? hotSongDetailsQuery.data.songs
+      : detail.hotSongs) as NeteaseTrack[]),
+  )
   const latestRelease = albums.hotAlbums[0] ?? null
   const queueSource = {
     label: detail.artist.name,
     to: '/artist/$id' as const,
     params: { id: String(detail.artist.id) },
   }
+  const artistImage = detail.artist.img1v1Url ?? detail.artist.picUrl ?? detail.artist.cover
 
   return (
-    <RoutePlaceholder
-      eyebrow="Artist"
-      title={detail.artist.name}
-      description={
-        detail.artist.briefDesc ||
-        '艺人页已经接通基础信息、热门歌曲和专辑列表。后续会继续补 MV 列表与更多关联内容。'
-      }
-      actions={
-        <button
-          type="button"
-          onClick={() =>
-            loadQueueAndPlay(buildPlayerQueueFromTracks(tracks), undefined, queueSource)
-          }
-          disabled={tracks.length === 0}
-          className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          播放热门歌曲
-        </button>
-      }
-    >
-      <div className="space-y-6">
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-          <div className="rounded-3xl border border-[var(--line)] bg-[rgba(79,184,178,0.04)] p-5">
-            <p className="island-kicker mb-3 text-xs tracking-[0.24em] uppercase">
-              Artist Snapshot
-            </p>
-            <div className="flex flex-wrap gap-3 text-sm text-[var(--sea-ink-soft)]">
-              <span className="rounded-full border border-[var(--line)] px-3 py-1.5">
-                {detail.artist.musicSize ?? tracks.length} 首歌曲
-              </span>
-              <span className="rounded-full border border-[var(--line)] px-3 py-1.5">
-                {detail.artist.albumSize ?? albums.hotAlbums.length} 张专辑
-              </span>
-              <span className="rounded-full border border-[var(--line)] px-3 py-1.5">
-                {detail.artist.mvSize ?? 0} 支 MV
-              </span>
-            </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-3">
-                <p className="m-0 text-xs tracking-[0.18em] text-[var(--kicker)] uppercase">
-                  Hot Songs
-                </p>
-                <p className="mt-2 mb-0 text-sm text-[var(--sea-ink-soft)]">
-                  当前已展示热门歌曲和直接播放入口。
-                </p>
-              </div>
-              <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-strong)] px-4 py-3">
-                <p className="m-0 text-xs tracking-[0.18em] text-[var(--kicker)] uppercase">
-                  MV Entry
-                </p>
-                <p className="mt-2 mb-0 text-sm text-[var(--sea-ink-soft)]">
-                  MV 页面仍在迁移中，先保留数量和后续接入入口。
-                </p>
-              </div>
-            </div>
-          </div>
+    <div className="detail-screen detail-screen--artist">
+      <section className="detail-hero detail-hero--artist island-shell">
+        <div className="detail-hero__cover-shell detail-hero__cover-shell--artist">
+          {artistImage ? (
+            <img
+              src={artistImage}
+              alt={detail.artist.name}
+              className="detail-hero__cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="detail-hero__cover-placeholder">{detail.artist.name.slice(0, 1)}</div>
+          )}
+        </div>
 
-          {albums.hotAlbums.length > 0 ? (
-            <div className="rounded-3xl border border-[var(--line)] bg-[var(--surface-strong)] p-5 shadow-[0_20px_60px_rgba(23,58,64,0.06)]">
-              <p className="island-kicker mb-3 text-xs tracking-[0.24em] uppercase">
-                Latest Release
-              </p>
-              <Link
-                to="/album/$id"
-                params={{ id: String(latestRelease.id) }}
-                className="block rounded-2xl border border-[var(--line)] p-4 text-inherit no-underline transition hover:bg-[rgba(79,184,178,0.08)]"
-              >
-                <p className="m-0 text-lg font-semibold text-[var(--sea-ink)]">
-                  {latestRelease.name}
-                </p>
-                <p className="mt-2 text-sm text-[var(--sea-ink-soft)]">
+        <div className="detail-hero__main">
+          <p className="detail-hero__eyebrow">Artist</p>
+          <h1 className="detail-hero__title">{detail.artist.name}</h1>
+          <p className="detail-hero__meta">Artist · 热门歌曲、专辑和艺人信息会从这里继续向原版收口</p>
+          <div className="detail-hero__tag-row">
+            <span className="detail-stat-pill">{detail.artist.musicSize ?? tracks.length} 首歌曲</span>
+            <span className="detail-stat-pill">{detail.artist.albumSize ?? albums.hotAlbums.length} 张专辑</span>
+            <span className="detail-stat-pill">{detail.artist.mvSize ?? 0} 支 MV</span>
+          </div>
+          <p className="detail-hero__description">
+            {detail.artist.briefDesc || '艺人页已改回原版更接近的头部结构，后续继续补 MV、相似艺人和更多内容块。'}
+          </p>
+          <div className="detail-hero__actions">
+            <button
+              type="button"
+              onClick={() =>
+                loadQueueAndPlay(buildPlayerQueueFromTracks(tracks), undefined, queueSource)
+              }
+              disabled={tracks.length === 0}
+              className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              播放热门歌曲
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {latestRelease ? (
+        <section className="detail-section">
+          <div className="detail-section__header">
+            <h2 className="detail-section__title">最新发布</h2>
+          </div>
+          <div className="detail-card-grid detail-card-grid--single">
+            <Link
+              to="/album/$id"
+              params={{ id: String(latestRelease.id) }}
+              className="detail-card"
+            >
+              <div className="detail-card__cover-shell">
+                {latestRelease.picUrl ?? latestRelease.blurPicUrl ? (
+                  <img
+                    src={latestRelease.picUrl ?? latestRelease.blurPicUrl}
+                    alt={latestRelease.name}
+                    className="detail-card__cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="detail-card__cover-placeholder">{latestRelease.name.slice(0, 1)}</div>
+                )}
+              </div>
+              <div className="detail-card__body">
+                <p className="detail-card__title">{latestRelease.name}</p>
+                <p className="detail-card__meta">
                   {formatReleaseYear(latestRelease.publishTime)} · 最近发行
                 </p>
-              </Link>
-            </div>
-          ) : null}
-        </section>
-
-        <section className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="m-0 text-lg font-semibold text-[var(--sea-ink)]">
-              热门歌曲
-            </h2>
-            <span className="text-xs text-[var(--sea-ink-soft)]">
-              {tracks.length} 首
-            </span>
+              </div>
+            </Link>
           </div>
+        </section>
+      ) : null}
 
-          <div className="grid gap-3">
-            {tracks.slice(0, 12).map((track, index) => (
-              <article
-                key={track.id}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--line)] px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="m-0 truncate font-medium text-[var(--sea-ink)]">
-                    {index + 1}. {track.name}
-                  </p>
-                  <p className="mt-1 truncate text-xs text-[var(--sea-ink-soft)]">
-                    {track.al?.name ?? 'Unknown album'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-[var(--sea-ink-soft)]">
-                    {track.playable === false ? track.reason : 'Playable'}
-                  </span>
-                  <PlayTrackButton
-                    track={track}
-                    queue={tracks}
-                    source={queueSource}
-                    showPlayNext
-                    className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+      <section className="detail-section">
+        <div className="detail-section__header">
+          <h2 className="detail-section__title">热门歌曲</h2>
+          <span className="detail-section__count">{tracks.length} 首</span>
+        </div>
+
+        <div className="detail-track-list">
+          {tracks.slice(0, 24).map((track, index) => (
+            <article key={track.id} className="detail-track-row">
+              <div className="detail-track-row__index">{index + 1}</div>
+              <div className="detail-track-row__cover-shell">
+                {track.al?.picUrl ?? track.album?.picUrl ? (
+                  <img
+                    src={track.al?.picUrl ?? track.album?.picUrl}
+                    alt={track.name}
+                    className="detail-track-row__cover"
+                    loading="lazy"
                   />
+                ) : (
+                  <div className="detail-track-row__cover-placeholder">{track.name.slice(0, 1)}</div>
+                )}
+              </div>
+              <div className="detail-track-row__main">
+                <p className="detail-track-row__title">{track.name}</p>
+                <p className="detail-track-row__meta">
+                  {track.al?.name ?? 'Unknown album'}
+                </p>
+              </div>
+              <span className="detail-track-row__status">
+                {track.playable === false ? track.reason : 'Playable'}
+              </span>
+              <PlayTrackButton
+                track={track}
+                queue={tracks}
+                source={queueSource}
+                showPlayNext
+                className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="detail-section">
+        <div className="detail-section__header">
+          <h2 className="detail-section__title">专辑</h2>
+          <span className="detail-section__count">{albums.hotAlbums.length} 张</span>
+        </div>
+
+        {albums.hotAlbums.length ? (
+          <div className="home-cover-grid">
+            {albums.hotAlbums.map((album) => (
+              <Link
+                key={album.id}
+                to="/album/$id"
+                params={{ id: String(album.id) }}
+                className="home-cover-card feature-card"
+              >
+                <div className="home-cover-card__artwork-shell">
+                  {album.picUrl ?? album.blurPicUrl ? (
+                    <img
+                      src={album.picUrl ?? album.blurPicUrl}
+                      alt={album.name}
+                      className="home-cover-card__artwork"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="home-cover-card__artwork-placeholder">{album.name.slice(0, 1)}</div>
+                  )}
                 </div>
-              </article>
+                <div className="min-w-0">
+                  <p className="home-cover-card__title">{album.name}</p>
+                  <p className="home-cover-card__subtitle">{formatReleaseYear(album.publishTime)}</p>
+                </div>
+              </Link>
             ))}
           </div>
-        </section>
-
-        <section className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="m-0 text-lg font-semibold text-[var(--sea-ink)]">
-              专辑
-            </h2>
-            <span className="text-xs text-[var(--sea-ink-soft)]">
-              {albums.hotAlbums.length} 张
-            </span>
-          </div>
-
-          {albums.hotAlbums.length ? (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {albums.hotAlbums.map((album) => (
-                <Link
-                  key={album.id}
-                  to="/album/$id"
-                  params={{ id: String(album.id) }}
-                  className="rounded-2xl border border-[var(--line)] px-4 py-4 text-inherit no-underline transition hover:bg-[rgba(79,184,178,0.08)]"
-                >
-                  <p className="m-0 font-medium text-[var(--sea-ink)]">
-                    {album.name}
-                  </p>
-                  <p className="mt-2 text-xs text-[var(--sea-ink-soft)]">
-                    {formatReleaseYear(album.publishTime)}
-                  </p>
-                  <p className="mt-1 text-xs text-[var(--sea-ink-soft)]/80">
-                    {album.artist?.name ??
-                      album.artists?.map((artist) => artist.name).join(' / ') ??
-                      detail.artist.name}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-3xl border border-dashed border-[var(--line)] px-6 py-10 text-sm text-[var(--sea-ink-soft)]">
-              暂时没有拿到该艺人的专辑数据。
-            </div>
-          )}
-        </section>
-      </div>
-    </RoutePlaceholder>
+        ) : (
+          <div className="library-empty-state">暂时没有拿到该艺人的专辑数据。</div>
+        )}
+      </section>
+    </div>
   )
 }
 

@@ -12,6 +12,28 @@
 - Prevention:
   - 后续凡是“结果依赖浏览器 localStorage 中的网易云 cookie”的接口，都先评估它是否真的适合放在 server fn / loader；不适合的话默认走客户端请求或客户端二次校正
 
+## 喜欢歌曲页也要复用客户端可播性校正
+
+- Context:
+  - `/library/liked-songs` 会同时使用歌单详情里首批返回的曲目，以及按 `trackIds` 补拉出来的分页 / 全量曲目详情
+- Problem:
+  - 如果这里只有搜索页、歌单页、专辑页等主详情页做了客户端二次可播性校正，而 `liked songs` 仍直接使用服务端首屏或接口原始 `track`，VIP 曲目就会继续被误判成 `VIP Only`，导致单曲播放按钮不可点
+- Resolution:
+  - 在 `liked songs` 页面对首批曲目、分页补拉曲目，以及“播放全部”构建完整队列时，统一复用 `usePlayableTracks` / `remapTracksPlayableStatusForAuth`
+- Prevention:
+  - 后续凡是“同一业务对象会从多个列表入口进入播放链路”的页面，都要检查是否每一条入口都复用了同一套客户端可播性校正，而不是只修主详情页
+
+## 核心详情页不要长期停留在 `RoutePlaceholder`
+
+- Context:
+  - 早期为了先打通数据链路，`playlist / album / artist` 等核心详情页使用了统一的 `RoutePlaceholder` 骨架承载标题、描述和简化列表
+- Problem:
+  - 这种做法虽然能快速验证接口，但会把核心详情页都做成同一种“文档式占位页”，和原版 Web 的 `封面/头像 + 信息区 + 曲目/内容分区` 结构明显不一致
+- Resolution:
+  - 对原版主路径中的核心详情页，应尽快改成接近原版的专用骨架；`RoutePlaceholder` 更适合仍未进入主线收口的边缘页或临时占位页
+- Prevention:
+  - 后续如果某页已经进入 parity 主线，就不要继续在 `RoutePlaceholder` 上做细节微调，而是直接切到该页自己的信息结构和样式语义
+
 ## 原版 parity 不能建立在自定义主题之上
 
 - Context:

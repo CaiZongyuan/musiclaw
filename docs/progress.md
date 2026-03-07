@@ -1,5 +1,24 @@
 # Progress
 
+## 2026-03-07（第十四轮功能收口：Library / Playlist / Album / Artist 页面骨架回迁）
+
+- Done:
+  - `src/routes/library.tsx` 已从“多个纵向卡片区块”收回到更接近旧版的结构：上方保留 liked songs 入口与预览，下方恢复 `歌单 / 专辑 / 艺人 / 最近播放` tabs 视图
+  - `src/routes/playlist.$id.tsx` 不再使用通用 `RoutePlaceholder` 作为主体骨架，已改为更接近旧版的 `封面 + 信息区 + 曲目列表` 布局
+  - `src/routes/album.$id.tsx` 已改为更接近旧版的专辑头部信息结构，补回 `专辑信息 + 歌曲列表` 的主视觉关系
+  - `src/routes/artist.$id.tsx` 已改为更接近旧版的艺人头部结构，并补上 `最新发布 / 热门歌曲 / 专辑` 的分区节奏
+  - `src/styles.css` 已新增并收口这几类页面的共用 detail-page 样式，不再继续沿用明显的“统一占位页”视觉
+  - 已运行 `./node_modules/.bin/tsc --noEmit`，当前 TypeScript 校验通过
+- In progress:
+  - 等待真实浏览器手测，确认 `Library / Playlist / Album / Artist` 的新骨架在桌面端与移动端都没有明显布局错位
+  - 本轮继续等你确认歌曲列表封面与 `/library` liked songs 卡片封面是否已恢复可见
+  - `album` 页歌曲行封面已补专辑封面兜底；`artist` 页热门歌曲已改为额外补一次 `song/detail`，用于拿回更完整的封面信息
+- Next:
+  - 根据你的手测结果继续微调这些页面的字号、按钮、卡片密度与间距，让它们进一步贴近原版
+  - 若这轮结构稳定，下一步继续把 `MV / Explore / New Album` 等仍带占位痕迹的页面继续收口
+- Blockers:
+  - 当前这些页面已先把“通用占位骨架”拆掉，但距离旧版仍有细节差距，例如 Library 的完整筛选项、Album 的更多附加信息、Artist 的 MV / 相似艺人等
+
 ## 2026-03-07（第十三轮修正：原版主题回迁 / VIP 播放权限修正）
 
 - Done:
@@ -11,10 +30,11 @@
   - `src/features/player/components/player-engine.tsx` 已改为客户端直接请求 `/song/url`，并通过 `attachNeteaseCookie` 带上本地账号 cookie
   - 已补充 `freeTrialInfo` 判断，避免播放器继续使用只能试听的音源
   - 搜索页、歌单页、专辑页、艺人页、每日推荐页现在都会按当前本地账号态重新计算 `playable / reason`，不再只信任服务端首屏判断
+  - `/library/liked-songs` 也已补上同一套客户端二次可播性校正；当前页歌曲按钮和“播放全部”构建完整队列时，都会按当前本地账号态重新计算 `playable / reason`
   - 已运行 `./node_modules/.bin/tsc --noEmit`，当前 TypeScript 校验通过
   - 已运行 `bunx vitest run test/lib/playability.test.ts`，当前 1 个测试文件共 3 个测试全部通过
 - In progress:
-  - 等待真实浏览器复测，确认 VIP 账号在搜索、歌单、专辑、艺人和日推页面的歌曲不再被误标成 `VIP Only`，且播放器不再只拿到试听片段
+  - 等待真实浏览器复测，确认 VIP 账号在搜索、歌单、专辑、艺人、日推和 `/library/liked-songs` 页面都不再误标 `VIP Only`，且播放器不再只拿到试听片段
 - Next:
   - 根据你的复测结果继续把全局页面视觉往原版收口，优先处理 `RoutePlaceholder` 风格和详情页信息区布局
   - 若仍有个别歌曲被限制，继续排查是否需要引入原版的更多音源兜底策略

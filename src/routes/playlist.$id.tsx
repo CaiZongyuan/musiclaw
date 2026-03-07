@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 import RouteErrorState from '#/components/app/route-error-state'
-import RoutePlaceholder from '#/components/app/route-placeholder'
 import type { NeteaseTrack } from '#/features/music/api/types'
 import { usePlayableTracks } from '#/lib/music/playability-client'
 import PlayTrackButton from '#/features/player/components/play-track-button'
@@ -16,6 +15,18 @@ export const Route = createFileRoute('/playlist/$id')({
   component: PlaylistRoute,
 })
 
+function formatDate(timestamp?: number) {
+  if (!timestamp) {
+    return '日期待补充'
+  }
+
+  return new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(timestamp)
+}
+
 function PlaylistRoute() {
   const data: Awaited<ReturnType<typeof fetchPlaylistDetail>> =
     Route.useLoaderData()
@@ -26,45 +37,95 @@ function PlaylistRoute() {
     to: '/playlist/$id' as const,
     params: { id: String(data.playlist.id) },
   }
+  const creator = data.playlist.creator as
+    | { nickname?: string; name?: string }
+    | undefined
+  const creatorName = creator?.nickname ?? creator?.name ?? 'Unknown creator'
+  const updateTime = (data.playlist as { updateTime?: number }).updateTime
+  const tags = (data.playlist as { tags?: string[] }).tags ?? []
+  const coverUrl = data.playlist.coverImgUrl ?? data.playlist.picUrl
 
   return (
-    <RoutePlaceholder
-      eyebrow="Playlist"
-      title={data.playlist.name}
-      description={
-        data.playlist.description ||
-        '歌单详情、歌曲列表和播放入口已经接到真实数据，下一步会继续补真实音频播放与更多交互。'
-      }
-      actions={
-        <button
-          type="button"
-          onClick={() =>
-            loadQueueAndPlay(buildPlayerQueueFromTracks(tracks), undefined, queueSource)
-          }
-          disabled={tracks.length === 0}
-          className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          播放全部
-        </button>
-      }
-    >
-      <div className="grid gap-3">
-        {tracks.slice(0, 12).map((track, index) => (
-          <article
-            key={track.id}
-            className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--line)] px-4 py-3"
-          >
-            <div className="min-w-0">
-              <p className="m-0 truncate font-medium text-[var(--sea-ink)]">
-                {index + 1}. {track.name}
-              </p>
-              <p className="mt-1 truncate text-xs text-[var(--sea-ink-soft)]">
-                {track.ar?.map((artist) => artist.name).join(' / ') ??
-                  'Unknown artist'}
-              </p>
+    <div className="detail-screen detail-screen--playlist">
+      <section className="detail-hero detail-hero--playlist island-shell">
+        <div className="detail-hero__cover-shell">
+          {coverUrl ? (
+            <img
+              src={coverUrl}
+              alt={data.playlist.name}
+              className="detail-hero__cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="detail-hero__cover-placeholder">
+              {data.playlist.name.slice(0, 1)}
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-[var(--sea-ink-soft)]">
+          )}
+        </div>
+
+        <div className="detail-hero__main">
+          <p className="detail-hero__eyebrow">Playlist</p>
+          <h1 className="detail-hero__title">{data.playlist.name}</h1>
+          <p className="detail-hero__meta">
+            Playlist by {creatorName} · 更新于 {formatDate(updateTime)} · {tracks.length} 首歌曲
+          </p>
+          {tags.length > 0 ? (
+            <div className="detail-hero__tag-row">
+              {tags.map((tag) => (
+                <span key={tag} className="detail-stat-pill">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
+          <p className="detail-hero__description">
+            {data.playlist.description || '歌单详情已开始回到原版结构：上方封面和信息区，下方是完整歌曲列表与播放入口。'}
+          </p>
+          <div className="detail-hero__actions">
+            <button
+              type="button"
+              onClick={() =>
+                loadQueueAndPlay(buildPlayerQueueFromTracks(tracks), undefined, queueSource)
+              }
+              disabled={tracks.length === 0}
+              className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              播放全部
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="detail-section">
+        <div className="detail-section__header">
+          <h2 className="detail-section__title">歌曲</h2>
+          <span className="detail-section__count">{tracks.length} 首</span>
+        </div>
+
+        <div className="detail-track-list">
+          {tracks.map((track, index) => (
+            <article key={track.id} className="detail-track-row">
+              <div className="detail-track-row__index">{index + 1}</div>
+              <div className="detail-track-row__cover-shell">
+                {track.al?.picUrl ?? track.album?.picUrl ? (
+                  <img
+                    src={track.al?.picUrl ?? track.album?.picUrl}
+                    alt={track.name}
+                    className="detail-track-row__cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="detail-track-row__cover-placeholder">{track.name.slice(0, 1)}</div>
+                )}
+              </div>
+              <div className="detail-track-row__main">
+                <p className="detail-track-row__title">{track.name}</p>
+                <p className="detail-track-row__meta">
+                  {track.ar?.map((artist) => artist.name).join(' / ') ?? 'Unknown artist'}
+                  {track.al?.name ? ` · ${track.al.name}` : ''}
+                </p>
+              </div>
+              <span className="detail-track-row__status">
                 {track.playable === false ? track.reason : 'Playable'}
               </span>
               <PlayTrackButton
@@ -74,11 +135,11 @@ function PlaylistRoute() {
                 showPlayNext
                 className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               />
-            </div>
-          </article>
-        ))}
-      </div>
-    </RoutePlaceholder>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
   )
 }
 
