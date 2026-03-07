@@ -1,22 +1,23 @@
 import { createFileRoute } from '@tanstack/react-router'
+import RouteErrorState from '#/components/app/route-error-state'
 import RoutePlaceholder from '#/components/app/route-placeholder'
 import type { NeteaseTrack } from '#/features/music/api/types'
 import PlayTrackButton from '#/features/player/components/play-track-button'
 import { buildPlayerQueueFromTracks } from '#/features/player/lib/player-track'
 import { usePlayerStore } from '#/features/player/stores/player-store'
-import {
-  fetchPlaylistDetail,
-  playlistDetailQueryOptions,
-} from '#/features/playlist/api/playlist-api'
+import { playlistDetailQueryOptions } from '#/features/playlist/api/playlist-api'
+import type { fetchPlaylistDetail } from '#/features/playlist/api/playlist-api'
 
 export const Route = createFileRoute('/playlist/$id')({
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(playlistDetailQueryOptions(params.id)) as Promise<Awaited<ReturnType<typeof fetchPlaylistDetail>>>,
+    context.queryClient.ensureQueryData(playlistDetailQueryOptions(params.id)),
+  errorComponent: PlaylistErrorComponent,
   component: PlaylistRoute,
 })
 
 function PlaylistRoute() {
-  const data = Route.useLoaderData() as Awaited<ReturnType<typeof fetchPlaylistDetail>>
+  const data: Awaited<ReturnType<typeof fetchPlaylistDetail>> =
+    Route.useLoaderData()
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
   const tracks = data.playlist.tracks as NeteaseTrack[]
 
@@ -68,5 +69,22 @@ function PlaylistRoute() {
         ))}
       </div>
     </RoutePlaceholder>
+  )
+}
+
+function PlaylistErrorComponent({
+  error,
+  reset,
+}: {
+  error: unknown
+  reset: () => void
+}) {
+  return (
+    <RouteErrorState
+      title="歌单详情加载失败"
+      description="歌单信息或曲目列表请求失败时，这里会给出明确提示，并允许你直接重试。"
+      error={error}
+      reset={reset}
+    />
   )
 }

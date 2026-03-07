@@ -1,11 +1,12 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
+import RouteErrorState from '#/components/app/route-error-state'
 import RoutePlaceholder from '#/components/app/route-placeholder'
+import { homePageQueryOptions } from '#/features/home/api/home-api'
 import type {
   NeteaseAlbumSummary,
   NeteaseArtistSummary,
   NeteasePlaylistSummary,
 } from '#/features/music/api/types'
-import { homePageQueryOptions } from '#/features/home/api/home-api'
 
 const defaultSearch = {
   q: '',
@@ -16,6 +17,7 @@ const defaultSearch = {
 export const Route = createFileRoute('/')({
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(homePageQueryOptions(8)),
+  errorComponent: HomeErrorComponent,
   component: HomeRoute,
 })
 
@@ -27,11 +29,11 @@ function HomeRoute() {
   const data = Route.useLoaderData()
 
   const recommendedPlaylists = ensureArray<NeteasePlaylistSummary>(
-    data.recommendedPlaylists?.result,
+    data.recommendedPlaylists.result,
   )
-  const toplists = ensureArray<NeteasePlaylistSummary>(data.toplists?.list)
-  const newAlbums = ensureArray<NeteaseAlbumSummary>(data.newAlbums?.albums)
-  const topArtists = ensureArray<NeteaseArtistSummary>(data.topArtists?.artists)
+  const toplists = ensureArray<NeteasePlaylistSummary>(data.toplists.list)
+  const newAlbums = ensureArray<NeteaseAlbumSummary>(data.newAlbums.albums)
+  const topArtists = ensureArray<NeteaseArtistSummary>(data.topArtists.artists)
 
   return (
     <div className="space-y-6">
@@ -149,5 +151,22 @@ function HomeRoute() {
         </div>
       </RoutePlaceholder>
     </div>
+  )
+}
+
+function HomeErrorComponent({
+  error,
+  reset,
+}: {
+  error: unknown
+  reset: () => void
+}) {
+  return (
+    <RouteErrorState
+      title="首页加载失败"
+      description="推荐歌单、榜单、新专辑或歌手榜请求失败时，首页现在会显示可恢复的错误态。"
+      error={error}
+      reset={reset}
+    />
   )
 }

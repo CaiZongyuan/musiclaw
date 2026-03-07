@@ -1,19 +1,22 @@
 import { createFileRoute } from '@tanstack/react-router'
+import RouteErrorState from '#/components/app/route-error-state'
 import RoutePlaceholder from '#/components/app/route-placeholder'
+import { artistDetailQueryOptions } from '#/features/artist/api/artist-api'
+import type { fetchArtistDetail } from '#/features/artist/api/artist-api'
 import type { NeteaseTrack } from '#/features/music/api/types'
-import { artistDetailQueryOptions, fetchArtistDetail } from '#/features/artist/api/artist-api'
 import PlayTrackButton from '#/features/player/components/play-track-button'
 import { buildPlayerQueueFromTracks } from '#/features/player/lib/player-track'
 import { usePlayerStore } from '#/features/player/stores/player-store'
 
 export const Route = createFileRoute('/artist/$id')({
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(artistDetailQueryOptions(params.id)) as Promise<Awaited<ReturnType<typeof fetchArtistDetail>>>,
+    context.queryClient.ensureQueryData(artistDetailQueryOptions(params.id)),
+  errorComponent: ArtistErrorComponent,
   component: ArtistRoute,
 })
 
 function ArtistRoute() {
-  const data = Route.useLoaderData() as Awaited<ReturnType<typeof fetchArtistDetail>>
+  const data: Awaited<ReturnType<typeof fetchArtistDetail>> = Route.useLoaderData()
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
   const tracks = data.hotSongs as NeteaseTrack[]
 
@@ -64,5 +67,22 @@ function ArtistRoute() {
         ))}
       </div>
     </RoutePlaceholder>
+  )
+}
+
+function ArtistErrorComponent({
+  error,
+  reset,
+}: {
+  error: unknown
+  reset: () => void
+}) {
+  return (
+    <RouteErrorState
+      title="艺人详情加载失败"
+      description="艺人信息或热门歌曲请求失败时，这里会保留应用壳并给出重试入口。"
+      error={error}
+      reset={reset}
+    />
   )
 }

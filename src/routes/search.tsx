@@ -1,5 +1,7 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
 import { Link, createFileRoute } from '@tanstack/react-router'
+import RouteErrorState from '#/components/app/route-error-state'
 import RoutePlaceholder from '#/components/app/route-placeholder'
 import type {
   NeteaseAlbumSummary,
@@ -8,10 +10,8 @@ import type {
   NeteaseTrack,
 } from '#/features/music/api/types'
 import PlayTrackButton from '#/features/player/components/play-track-button'
-import {
-  type NormalizedSearchResponse,
-  searchQueryOptions,
-} from '#/features/search/api/search-api'
+import { searchQueryOptions } from '#/features/search/api/search-api'
+import type { NormalizedSearchResponse } from '#/features/search/api/search-api'
 
 interface SearchParams {
   q: string
@@ -243,15 +243,16 @@ export const Route = createFileRoute('/search')({
         limit: PAGE_SIZE,
         offset: (normalizedSearch.page - 1) * PAGE_SIZE,
       }),
-    ) as Promise<NormalizedSearchResponse>
+    )
   },
+  errorComponent: SearchErrorComponent,
   component: SearchRoute,
 })
 
 function SearchRoute() {
   const navigate = Route.useNavigate()
   const search = normalizeSearchParams(Route.useSearch())
-  const data = Route.useLoaderData() as SearchLoaderData
+  const data: SearchLoaderData = Route.useLoaderData()
   const [inputValue, setInputValue] = useState(search.q)
 
   useEffect(() => {
@@ -418,7 +419,7 @@ function SearchRoute() {
                       className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-[var(--line)] px-4 py-3 text-left text-sm text-[var(--sea-ink-soft)] transition hover:bg-[rgba(79,184,178,0.08)]"
                     >
                       <span>专辑</span>
-                      <span>{data?.result.albums?.length ?? 0}</span>
+                      <span>{data?.result.albums.length ?? 0}</span>
                     </button>
                     <button
                       type="button"
@@ -426,7 +427,7 @@ function SearchRoute() {
                       className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-[var(--line)] px-4 py-3 text-left text-sm text-[var(--sea-ink-soft)] transition hover:bg-[rgba(79,184,178,0.08)]"
                     >
                       <span>歌单</span>
-                      <span>{data?.result.playlists?.length ?? 0}</span>
+                      <span>{data?.result.playlists.length ?? 0}</span>
                     </button>
                     <button
                       type="button"
@@ -434,7 +435,7 @@ function SearchRoute() {
                       className="flex w-full cursor-pointer items-center justify-between rounded-2xl border border-[var(--line)] px-4 py-3 text-left text-sm text-[var(--sea-ink-soft)] transition hover:bg-[rgba(79,184,178,0.08)]"
                     >
                       <span>歌手</span>
-                      <span>{data?.result.artists?.length ?? 0}</span>
+                      <span>{data?.result.artists.length ?? 0}</span>
                     </button>
                   </div>
 
@@ -482,6 +483,41 @@ function SearchRoute() {
         )}
       </div>
     </RoutePlaceholder>
+  )
+}
+
+function SearchErrorComponent({
+  error,
+  reset,
+}: {
+  error: unknown
+  reset: () => void
+}) {
+  return (
+    <RouteErrorState
+      title="搜索页加载失败"
+      description="当搜索请求失败时，页面会保留搜索入口并显示清晰的错误提示，而不是直接白屏。"
+      error={error}
+      reset={reset}
+      actions={
+        <>
+          <button
+            type="button"
+            onClick={reset}
+            className="app-chip cursor-pointer"
+          >
+            重试搜索
+          </button>
+          <Link
+            to="/search"
+            search={DEFAULT_SEARCH_PARAMS}
+            className="app-chip"
+          >
+            清空搜索
+          </Link>
+        </>
+      }
+    />
   )
 }
 

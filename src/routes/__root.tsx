@@ -1,17 +1,18 @@
+import type { QueryClient } from '@tanstack/react-query'
+import { TanStackDevtools } from '@tanstack/react-devtools'
 import {
   HeadContent,
   Scripts,
   createRootRouteWithContext,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
-import TanStackQueryProvider from '../integrations/tanstack-query/root-provider'
-import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
-import { getLocale } from '#/paraglide/runtime'
-import AppShell from '#/components/app/app-shell'
-import appCss from '../styles.css?url'
 import type { ReactNode } from 'react'
-import type { QueryClient } from '@tanstack/react-query'
+import AppShell from '#/components/app/app-shell'
+import RouteErrorState from '#/components/app/route-error-state'
+import { getLocale } from '#/paraglide/runtime'
+import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
+import TanStackQueryProvider from '../integrations/tanstack-query/root-provider'
+import appCss from '../styles.css?url'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -25,7 +26,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       document.documentElement.setAttribute('lang', getLocale())
     }
   },
-
   head: () => ({
     meta: [
       {
@@ -46,6 +46,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
     ],
   }),
+  errorComponent: RootErrorComponent,
   shellComponent: RootDocument,
 })
 
@@ -75,5 +76,22 @@ function RootDocument({ children }: { children: ReactNode }) {
         <Scripts />
       </body>
     </html>
+  )
+}
+
+function RootErrorComponent({
+  error,
+  reset,
+}: {
+  error: unknown
+  reset: () => void
+}) {
+  return (
+    <RouteErrorState
+      title="页面加载出了点问题"
+      description="根路由已经接入统一错误兜底。即使 loader 或渲染出错，也应该能看到这个提示而不是直接白屏。"
+      error={error}
+      reset={reset}
+    />
   )
 }

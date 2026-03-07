@@ -177,3 +177,14 @@
   - 在 `player-store` 中提供 `seekTo`、切歌时重算 `durationSeconds`，并统一对进度和时长做 clamp
 - Prevention:
   - 后续新增歌词高亮、已播放缓存、逐字歌词时，继续只通过 store action 改写播放进度，不在组件里分散处理边界
+
+## 路由级数据页应尽早接入共享错误态
+
+- Context:
+  - 首页、搜索页和详情页大量依赖 TanStack Router loader + server function 拉取外部 Netease API
+- Problem:
+  - 当 API 地址错误、服务未启动或返回异常时，如果路由没有 `errorComponent`，用户容易看到整页空白或难以恢复的报错
+- Resolution:
+  - 抽出 `RouteErrorState` 作为共享错误 UI，并在根路由和核心数据路由统一接入 `errorComponent` + `reset`
+- Prevention:
+  - 后续新增依赖 loader 的业务路由时，默认一起补上 `errorComponent`，把错误恢复路径当成页面骨架的一部分

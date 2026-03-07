@@ -1,19 +1,22 @@
 import { createFileRoute } from '@tanstack/react-router'
+import RouteErrorState from '#/components/app/route-error-state'
 import RoutePlaceholder from '#/components/app/route-placeholder'
+import { albumDetailQueryOptions } from '#/features/album/api/album-api'
+import type { fetchAlbumDetail } from '#/features/album/api/album-api'
 import type { NeteaseTrack } from '#/features/music/api/types'
-import { albumDetailQueryOptions, fetchAlbumDetail } from '#/features/album/api/album-api'
 import PlayTrackButton from '#/features/player/components/play-track-button'
 import { buildPlayerQueueFromTracks } from '#/features/player/lib/player-track'
 import { usePlayerStore } from '#/features/player/stores/player-store'
 
 export const Route = createFileRoute('/album/$id')({
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(albumDetailQueryOptions(params.id)) as Promise<Awaited<ReturnType<typeof fetchAlbumDetail>>>,
+    context.queryClient.ensureQueryData(albumDetailQueryOptions(params.id)),
+  errorComponent: AlbumErrorComponent,
   component: AlbumRoute,
 })
 
 function AlbumRoute() {
-  const data = Route.useLoaderData() as Awaited<ReturnType<typeof fetchAlbumDetail>>
+  const data: Awaited<ReturnType<typeof fetchAlbumDetail>> = Route.useLoaderData()
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
   const tracks = data.songs as NeteaseTrack[]
 
@@ -65,5 +68,22 @@ function AlbumRoute() {
         ))}
       </div>
     </RoutePlaceholder>
+  )
+}
+
+function AlbumErrorComponent({
+  error,
+  reset,
+}: {
+  error: unknown
+  reset: () => void
+}) {
+  return (
+    <RouteErrorState
+      title="专辑详情加载失败"
+      description="专辑信息或曲目列表请求失败时，这里会展示错误态，避免页面直接白屏。"
+      error={error}
+      reset={reset}
+    />
   )
 }
