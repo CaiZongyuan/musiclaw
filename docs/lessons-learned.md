@@ -1,5 +1,16 @@
 # Lessons Learned
 
+## 账号态专属推荐优先走客户端 Query
+
+- Context:
+  - 首页 `Daily Tracks`、`Personal FM` 和 `/daily/songs` 依赖本地持久化的网易云 cookie，而不是 SSR 请求上下文里的标准 session
+- Problem:
+  - 如果把这类能力强行放进 route loader / server function，服务端首次渲染拿不到浏览器 localStorage 里的 `rawCookie`，就会把账号专属内容误判成未登录或空数据
+- Resolution:
+  - 对这类账号态专属推荐，优先使用带 `attachNeteaseCookie` 的客户端 `useQuery`；页面骨架和非账号态提示仍由路由负责
+- Prevention:
+  - 后续凡是依赖本地持久化 cookie 的“账号专属内容”，先判断它是否真的适合 SSR；如果 cookie 只存在浏览器端，就默认走客户端 query + 明确空态 / 登录态分支
+
 ## 用 `docs/` 作为协作中枢
 
 - Context:

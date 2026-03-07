@@ -1,9 +1,29 @@
 # Progress
 
+## 2026-03-07（第七轮功能收口：首页 For You 真实业务）
+
+- Done:
+  - 首页 `For You` 已不再是双占位卡片，已新增真实 `Daily Tracks` 与 `Personal FM` 卡片
+  - 新增 `src/features/home/api/for-you-api.ts`，接入 `/recommend/songs`、`/personal_fm`、`/fm_trash` 接口
+  - `/daily/songs` 已从占位页升级为真实日推列表页，支持账号态加载、播放全部、单曲播放与“下一首”
+  - 首页 `Daily Tracks` 卡片已支持：展示真实封面、进入日推页、直接播放当日日推
+  - 首页 `Personal FM` 卡片已支持：展示当前 FM 歌曲、播放 / 暂停、下一首、不喜欢并刷新 FM
+  - 已运行 `./node_modules/.bin/tsc --noEmit`，当前 TypeScript 校验通过
+- In progress:
+  - 等待真实浏览器手测，确认首页 `For You` 的账号态分支、FM 控制和日推页联动是否稳定
+- Next:
+  - 根据手测结果继续微调 `Daily Tracks` / `Personal FM` 卡片视觉细节
+  - 继续推进 Navbar / Player / 首页剩余 parity 细节，尤其是按钮尺寸、字重和 hover 反馈
+  - 评估是否继续补 FM 连续播放语义，还是转向下一块旧版缺口
+- Blockers:
+  - `For You` 两张卡都依赖账号态 cookie；如果当前是用户名只读模式或 cookie 失效，页面只能显示登录引导或空态
+  - `bun run build` 仍被仓库既有问题阻塞：`src/routes/demo.i18n.tsx` 依赖的 `../logo.svg` 缺失，且 `wrangler` 在当前环境下无法写 `/root/.config/.wrangler/logs/*`
+
 ## 2026-03-07（第六轮功能收口：登录分流 / Library 扩展 / play-next 队列）
 
 - Done:
   - 恢复旧版登录分流路径：`/login`、`/login/account`、`/login/username`
+  - 修复 `/login` 父路由未渲染 `Outlet` 导致点击登录分流入口无反应的问题
   - 将原可用登录逻辑下沉到 `/login/account`，继续支持二维码、手机号、邮箱登录
   - 新增用户名只读登录模式：可搜索公开用户并写入 `profile` + `loginMode=username` 后进入 `/library`
   - `/library` 继续补齐旧版结构，新增收藏专辑、收藏艺人、最近播放预览，并对用户名模式显示账号登录提示

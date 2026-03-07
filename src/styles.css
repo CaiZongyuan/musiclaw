@@ -776,6 +776,215 @@ a {
   font-weight: 700;
 }
 
+.home-daily-card {
+  position: relative;
+  min-height: 12.4rem;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.home-daily-card__background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.04);
+}
+
+.home-daily-card__overlay {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 12.4rem;
+  padding: 1.6rem;
+  background:
+    linear-gradient(90deg, rgba(7, 12, 15, 0.52), rgba(7, 12, 15, 0.08) 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(7, 12, 15, 0.22));
+}
+
+.home-daily-card__title-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.1rem 0.55rem;
+  width: 8.5rem;
+  color: white;
+  font-size: 3.8rem;
+  line-height: 0.82;
+  font-weight: 800;
+  text-shadow: 0 6px 22px rgba(0, 0, 0, 0.32);
+  user-select: none;
+}
+
+.home-daily-card__meta {
+  max-width: 48%;
+  align-self: flex-end;
+}
+
+.home-daily-card .home-feature-card__eyebrow,
+.home-daily-card__description {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.home-daily-card__description {
+  margin: 0.55rem 0 0;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.26);
+}
+
+.home-daily-card__play-button,
+.home-fm-card__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.14);
+  color: white;
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    background-color 140ms ease,
+    opacity 140ms ease;
+}
+
+.home-daily-card__play-button:hover,
+.home-fm-card__button:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.home-daily-card__play-button:active,
+.home-fm-card__button:active {
+  transform: scale(0.96);
+}
+
+.home-daily-card__play-button:disabled,
+.home-fm-card__button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.home-daily-card__play-button {
+  position: absolute;
+  right: 1.45rem;
+  bottom: 1.35rem;
+  z-index: 2;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 999px;
+  backdrop-filter: blur(10px);
+}
+
+.home-fm-card {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  gap: 1.15rem;
+  min-height: 12.4rem;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at top left, rgba(79, 184, 178, 0.18), transparent 42%),
+    linear-gradient(135deg, rgba(23, 58, 64, 0.96), rgba(32, 84, 60, 0.88));
+  color: white;
+}
+
+.home-fm-card__cover-shell {
+  min-width: 0;
+}
+
+.home-fm-card__cover-link,
+.home-fm-card__cover,
+.home-fm-card__cover-placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.home-fm-card__cover-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-fm-card__cover,
+.home-fm-card__cover-placeholder {
+  min-height: 10.4rem;
+  border-radius: 1rem;
+}
+
+.home-fm-card__cover {
+  object-fit: cover;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+}
+
+.home-fm-card__cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.home-fm-card__body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.home-fm-card .home-feature-card__eyebrow,
+.home-fm-card__description,
+.home-fm-card__label {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.home-fm-card__title {
+  margin-top: 0.55rem;
+  color: white;
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+
+.home-fm-card__description {
+  margin-top: 0.45rem;
+}
+
+.home-fm-card__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.home-fm-card__buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.home-fm-card__button {
+  width: 2.45rem;
+  height: 2.45rem;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+}
+
+.home-fm-card__button--primary {
+  width: 2.8rem;
+  height: 2.8rem;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.home-fm-card__label {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
 .player-dock {
   box-shadow:
     0 -1px 0 rgba(255, 255, 255, 0.04) inset,
@@ -941,6 +1150,15 @@ a {
   .home-cover-grid--artists {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .home-daily-card__overlay,
+  .home-fm-card {
+    min-height: 11.6rem;
+  }
+
+  .home-fm-card {
+    grid-template-columns: 8rem minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 640px) {
@@ -977,6 +1195,33 @@ a {
   .home-cover-grid,
   .home-cover-grid--artists {
     grid-template-columns: 1fr;
+  }
+
+  .home-daily-card__overlay,
+  .home-fm-card {
+    min-height: auto;
+  }
+
+  .home-daily-card__overlay {
+    align-items: flex-end;
+  }
+
+  .home-daily-card__title-grid {
+    width: 6.8rem;
+    font-size: 3rem;
+  }
+
+  .home-daily-card__meta {
+    max-width: 54%;
+  }
+
+  .home-fm-card {
+    grid-template-columns: 1fr;
+  }
+
+  .home-fm-card__cover,
+  .home-fm-card__cover-placeholder {
+    min-height: 15rem;
   }
 
   .player-dock__volume-control {

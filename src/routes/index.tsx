@@ -1,6 +1,8 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import RouteErrorState from '#/components/app/route-error-state'
 import { homePageQueryOptions } from '#/features/home/api/home-api'
+import DailyTracksFeatureCard from '#/features/home/components/daily-tracks-feature-card'
+import PersonalFmFeatureCard from '#/features/home/components/personal-fm-feature-card'
 import { byAppleMusic } from '#/features/home/lib/static-data'
 import type {
   NeteaseAlbumSummary,
@@ -83,26 +85,6 @@ function HomeCoverCard({
   )
 }
 
-function HomeFeatureCard({
-  title,
-  subtitle,
-  description,
-  to,
-}: {
-  title: string
-  subtitle: string
-  description: string
-  to: '/daily/songs' | '/login/account'
-}) {
-  return (
-    <Link to={to} className="home-feature-card feature-card">
-      <p className="home-feature-card__eyebrow">{subtitle}</p>
-      <h3 className="home-feature-card__title">{title}</h3>
-      <p className="home-feature-card__description">{description}</p>
-    </Link>
-  )
-}
-
 function HomeRoute() {
   const data = Route.useLoaderData()
 
@@ -154,18 +136,8 @@ function HomeRoute() {
       <section className="home-row">
         <HomeSectionHeader title="For You" />
         <div className="home-feature-grid">
-          <HomeFeatureCard
-            title="每日推荐"
-            subtitle="Daily Tracks"
-            description="继续对齐旧版 DailyTracksCard 的入口位置和双卡片布局；登录后可进入每日推荐页面。"
-            to="/daily/songs"
-          />
-          <HomeFeatureCard
-            title="私人 FM"
-            subtitle="Personal FM"
-            description="保留旧版首页 For You 第二张卡的位置，下一轮继续接回 FM 的真实业务链路。"
-            to="/login/account"
-          />
+          <DailyTracksFeatureCard />
+          <PersonalFmFeatureCard />
         </div>
       </section>
 
