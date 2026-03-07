@@ -19,8 +19,19 @@ export interface PlayerTrack {
 
 export interface PlayerQueueSource {
   label: string
-  to?: '/playlist/$id' | '/album/$id' | '/artist/$id' | '/daily/songs' | '/library/liked-songs'
+  to?:
+    | '/playlist/$id'
+    | '/album/$id'
+    | '/artist/$id'
+    | '/daily/songs'
+    | '/library/liked-songs'
+    | '/search'
   params?: { id: string }
+  search?: {
+    q: string
+    type: number
+    page: number
+  }
 }
 
 export interface PlayerStoreSnapshot {

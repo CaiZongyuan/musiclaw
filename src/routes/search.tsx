@@ -10,6 +10,7 @@ import type {
   NeteaseTrack,
 } from '#/features/music/api/types'
 import PlayTrackButton from '#/features/player/components/play-track-button'
+import type { PlayerQueueSource } from '#/features/player/stores/player-store'
 import { searchQueryOptions } from '#/features/search/api/search-api'
 import type { NormalizedSearchResponse } from '#/features/search/api/search-api'
 
@@ -93,7 +94,23 @@ function getSearchTotalCount(type: number, data: SearchLoaderData) {
   }
 }
 
-function renderSongs(tracks: NeteaseTrack[], queue = tracks) {
+function createSearchQueueSource(search: SearchParams): PlayerQueueSource {
+  return {
+    label: '搜索「' + search.q + '」',
+    to: '/search',
+    search: {
+      q: search.q,
+      type: search.type,
+      page: search.page,
+    },
+  }
+}
+
+function renderSongs(
+  tracks: NeteaseTrack[],
+  queue = tracks,
+  source?: PlayerQueueSource,
+) {
   if (!tracks.length) {
     return <SearchEmptyState message="没有找到匹配的单曲。" />
   }
@@ -130,6 +147,7 @@ function renderSongs(tracks: NeteaseTrack[], queue = tracks) {
               <PlayTrackButton
                 track={track}
                 queue={queue}
+                source={source}
                 showPlayNext
                 className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               />
@@ -406,6 +424,7 @@ function SearchRoute() {
                   {renderSongs(
                     (data?.result.songs ?? []).slice(0, 8),
                     data?.result.songs ?? [],
+                    createSearchQueueSource(search),
                   )}
                 </section>
 
@@ -450,7 +469,13 @@ function SearchRoute() {
               </div>
             ) : null}
 
-            {search.type === 1 ? renderSongs(data?.result.songs ?? []) : null}
+            {search.type === 1
+              ? renderSongs(
+                  data?.result.songs ?? [],
+                  data?.result.songs ?? [],
+                  createSearchQueueSource(search),
+                )
+              : null}
             {search.type === 10 ? renderAlbums(data?.result.albums ?? []) : null}
             {search.type === 100 ? renderArtists(data?.result.artists ?? []) : null}
             {search.type === 1000

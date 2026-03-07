@@ -147,6 +147,11 @@ export default function PlayerDock() {
       return
     }
 
+    if (queueSource.to === '/search' && queueSource.search) {
+      void navigate({ to: '/search', search: queueSource.search })
+      return
+    }
+
     if (queueSource.params?.id) {
       void navigate({ to: queueSource.to, params: { id: queueSource.params.id } })
     }
