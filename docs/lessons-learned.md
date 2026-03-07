@@ -188,3 +188,14 @@
   - 抽出 `RouteErrorState` 作为共享错误 UI，并在根路由和核心数据路由统一接入 `errorComponent` + `reset`
 - Prevention:
   - 后续新增依赖 loader 的业务路由时，默认一起补上 `errorComponent`，把错误恢复路径当成页面骨架的一部分
+
+## 歌词高亮逻辑应先沉到纯函数再接 UI
+
+- Context:
+  - 歌词预览、展开面板和后续独立歌词页都需要根据 `progressSeconds` 定位当前句
+- Problem:
+  - 如果每个组件都自己扫描歌词数组，容易出现当前句不一致，也很难写稳定测试
+- Resolution:
+  - 在 `track/lib/lyrics.ts` 中抽出 `getActiveLyricIndex` 和 `getLyricPreview`，组件只消费 helper 的结果
+- Prevention:
+  - 后续扩展逐字歌词、翻译歌词对齐和滚动定位时，继续优先扩展 helper，再让 UI 复用同一套逻辑

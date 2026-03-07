@@ -1,30 +1,45 @@
 import { describe, expect, test } from 'vitest'
 import {
-  normalizeTrackLyricsResponse,
+  getActiveLyricIndex,
+  getLyricPreview,
   parseLyricText,
 } from '../../src/features/track/lib/lyrics'
 
-describe('track lyrics', () => {
-  test('parses and sorts lyric lines by time', () => {
-    expect(
-      parseLyricText('[00:10.00] World\n[00:05.50] Hello\n[00:05.70] Again'),
-    ).toEqual([
-      { rawTime: '[00:05.50]', time: 5.5, content: 'Hello' },
-      { rawTime: '[00:05.70]', time: 5.7, content: 'Again' },
-      { rawTime: '[00:10.00]', time: 10, content: 'World' },
+const rawLyric = `
+[00:01.00]Line one
+[00:05.00]Line two
+[00:09.00]Line three
+[00:12.00]Line four
+`
+
+describe('lyrics helpers', () => {
+  test('parseLyricText keeps lines ordered by timestamp', () => {
+    expect(parseLyricText(rawLyric)).toEqual([
+      { rawTime: '[00:01.00]', time: 1, content: 'Line one' },
+      { rawTime: '[00:05.00]', time: 5, content: 'Line two' },
+      { rawTime: '[00:09.00]', time: 9, content: 'Line three' },
+      { rawTime: '[00:12.00]', time: 12, content: 'Line four' },
     ])
   })
 
-  test('normalizes original, translated and roman lyrics', () => {
-    const lyrics = normalizeTrackLyricsResponse({
-      code: 200,
-      lrc: { lyric: '[00:01.00] 原文' },
-      tlyric: { lyric: '[00:01.00] Translation' },
-      romalrc: { lyric: '[00:01.00] Roma' },
-    })
+  test('getActiveLyricIndex follows playback progress', () => {
+    const parsed = parseLyricText(rawLyric)
 
-    expect(lyrics.lyric[0]?.content).toBe('原文')
-    expect(lyrics.translatedLyric[0]?.content).toBe('Translation')
-    expect(lyrics.romanLyric[0]?.content).toBe('Roma')
+    expect(getActiveLyricIndex(parsed, 0)).toBe(0)
+    expect(getActiveLyricIndex(parsed, 5.2)).toBe(1)
+    expect(getActiveLyricIndex(parsed, 99)).toBe(3)
+  })
+
+  test('getActiveLyricIndex returns -1 for empty lyric lists', () => {
+    expect(getActiveLyricIndex([], 3)).toBe(-1)
+  })
+
+  test('getLyricPreview starts from the current active line', () => {
+    const parsed = parseLyricText(rawLyric)
+
+    expect(getLyricPreview(parsed, 5.2, 2)).toEqual([
+      { rawTime: '[00:05.00]', time: 5, content: 'Line two' },
+      { rawTime: '[00:09.00]', time: 9, content: 'Line three' },
+    ])
   })
 })

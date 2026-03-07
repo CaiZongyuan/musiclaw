@@ -10,8 +10,8 @@ export interface NormalizedTrackLyrics {
   lyric: ParsedLyricLine[]
   translatedLyric: ParsedLyricLine[]
   romanLyric: ParsedLyricLine[]
-  lyricUser?: Record<string, {}>
-  transUser?: Record<string, {}>
+  lyricUser?: Record<string, { }>
+  transUser?: Record<string, { }>
 }
 
 const extractLrcRegex =
@@ -80,6 +80,50 @@ export function parseLyricText(rawLyric: string) {
   }
 
   return parsedLyrics
+}
+
+export function getActiveLyricIndex(
+  lines: ParsedLyricLine[],
+  progressSeconds: number,
+) {
+  if (lines.length === 0) {
+    return -1
+  }
+
+  let activeIndex = 0
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const currentLine = lines.at(index)
+    const nextLine = lines.at(index + 1)
+
+    if (!currentLine) {
+      break
+    }
+
+    if (progressSeconds >= currentLine.time) {
+      activeIndex = index
+    }
+
+    if (nextLine && progressSeconds < nextLine.time) {
+      break
+    }
+  }
+
+  return activeIndex
+}
+
+export function getLyricPreview(
+  lines: ParsedLyricLine[],
+  progressSeconds: number,
+  size = 3,
+) {
+  const activeIndex = getActiveLyricIndex(lines, progressSeconds)
+
+  if (activeIndex < 0) {
+    return []
+  }
+
+  return lines.slice(activeIndex, activeIndex + size)
 }
 
 export function normalizeTrackLyricsResponse(
