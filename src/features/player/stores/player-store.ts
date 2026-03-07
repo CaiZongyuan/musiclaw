@@ -17,8 +17,15 @@ export interface PlayerTrack {
   durationMs?: number
 }
 
+export interface PlayerQueueSource {
+  label: string
+  to?: '/playlist/$id' | '/album/$id' | '/artist/$id' | '/daily/songs' | '/library/liked-songs'
+  params?: { id: string }
+}
+
 export interface PlayerStoreSnapshot {
   queue: PlayerTrack[]
+  queueSource: PlayerQueueSource | null
   playNextQueue: PlayerTrack[]
   currentTrackId: number | null
   isPlaying: boolean
@@ -33,7 +40,7 @@ interface PlayerStoreActions {
   clearPlayNextQueue: () => void
   cycleRepeatMode: () => void
   enqueueToPlayNext: (track: PlayerTrack) => void
-  loadQueueAndPlay: (queue: PlayerTrack[], currentTrackId?: number | null) => void
+  loadQueueAndPlay: (queue: PlayerTrack[], currentTrackId?: number | null, source?: PlayerQueueSource | null) => void
   pause: () => void
   play: () => void
   playTrack: (trackId: number) => void
@@ -43,7 +50,7 @@ interface PlayerStoreActions {
   seekTo: (progressSeconds: number) => void
   setDurationSeconds: (durationSeconds: number) => void
   setProgressSeconds: (progressSeconds: number) => void
-  setQueue: (queue: PlayerTrack[], currentTrackId?: number | null) => void
+  setQueue: (queue: PlayerTrack[], currentTrackId?: number | null, source?: PlayerQueueSource | null) => void
   setRepeatMode: (repeatMode: RepeatMode) => void
   setShuffleEnabled: (shuffleEnabled: boolean) => void
   setTrackSource: (trackId: number, sourceUrl: string) => void
@@ -59,6 +66,7 @@ export type PlayerStoreState = PlayerStoreSnapshot & PlayerStoreActions
 export const defaultPlayerSnapshot: PlayerStoreSnapshot = {
   queue: [],
   playNextQueue: [],
+  queueSource: null,
   currentTrackId: null,
   isPlaying: false,
   volume: 1,
@@ -164,6 +172,7 @@ export const usePlayerStore = create<PlayerStoreState>()(
             return {
               queue: [track],
               playNextQueue: [],
+              queueSource: null,
               currentTrackId: track.id,
               isPlaying: true,
               progressSeconds: 0,
@@ -181,9 +190,10 @@ export const usePlayerStore = create<PlayerStoreState>()(
             ],
           }
         }),
-      loadQueueAndPlay: (queue, currentTrackId = queue[0]?.id ?? null) =>
+      loadQueueAndPlay: (queue, currentTrackId = queue[0]?.id ?? null, source = null) =>
         set({
           queue,
+          queueSource: source,
           playNextQueue: [],
           currentTrackId,
           isPlaying: currentTrackId !== null,
@@ -220,6 +230,7 @@ export const usePlayerStore = create<PlayerStoreState>()(
             return {
               queue: [],
               playNextQueue: [],
+              queueSource: null,
               currentTrackId: null,
               isPlaying: false,
               progressSeconds: 0,
@@ -267,9 +278,10 @@ export const usePlayerStore = create<PlayerStoreState>()(
         set((state) => ({
           progressSeconds: clampProgress(progressSeconds, state.durationSeconds),
         })),
-      setQueue: (queue, currentTrackId = queue[0]?.id ?? null) =>
+      setQueue: (queue, currentTrackId = queue[0]?.id ?? null, source = null) =>
         set({
           queue,
+          queueSource: source,
           playNextQueue: [],
           currentTrackId,
           progressSeconds: 0,
@@ -438,6 +450,7 @@ export const usePlayerStore = create<PlayerStoreState>()(
       storage: createBrowserJsonStorage<PlayerStoreSnapshot>(),
       partialize: (state) => ({
         queue: state.queue,
+        queueSource: state.queueSource,
         playNextQueue: state.playNextQueue,
         currentTrackId: state.currentTrackId,
         volume: state.volume,

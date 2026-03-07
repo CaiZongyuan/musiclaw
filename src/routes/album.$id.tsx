@@ -19,6 +19,11 @@ function AlbumRoute() {
   const data: Awaited<ReturnType<typeof fetchAlbumDetail>> = Route.useLoaderData()
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
   const tracks = data.songs as NeteaseTrack[]
+  const queueSource = {
+    label: data.album.name,
+    to: '/album/$id' as const,
+    params: { id: String(data.album.id) },
+  }
 
   return (
     <RoutePlaceholder
@@ -31,7 +36,9 @@ function AlbumRoute() {
       actions={
         <button
           type="button"
-          onClick={() => loadQueueAndPlay(buildPlayerQueueFromTracks(tracks))}
+          onClick={() =>
+            loadQueueAndPlay(buildPlayerQueueFromTracks(tracks), undefined, queueSource)
+          }
           disabled={tracks.length === 0}
           className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
         >
@@ -61,6 +68,7 @@ function AlbumRoute() {
               <PlayTrackButton
                 track={track}
                 queue={tracks}
+                source={queueSource}
                 showPlayNext
                 className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               />

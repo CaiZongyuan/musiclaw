@@ -43,6 +43,7 @@ export default function PlayerDock() {
     playNextQueue,
     progressSeconds,
     queue,
+    queueSource,
     repeatMode,
     seekTo,
     shuffleEnabled,
@@ -61,6 +62,7 @@ export default function PlayerDock() {
       playNextQueue: state.playNextQueue,
       progressSeconds: state.progressSeconds,
       queue: state.queue,
+      queueSource: state.queueSource,
       repeatMode: state.repeatMode,
       seekTo: state.seekTo,
       shuffleEnabled: state.shuffleEnabled,
@@ -133,6 +135,21 @@ export default function PlayerDock() {
     }
 
     void navigate({ to: '/artist/$id', params: { id: String(artistId) } })
+  }
+
+  function goToSource() {
+    if (!queueSource?.to) {
+      return
+    }
+
+    if (queueSource.to === '/daily/songs' || queueSource.to === '/library/liked-songs') {
+      void navigate({ to: queueSource.to })
+      return
+    }
+
+    if (queueSource.params?.id) {
+      void navigate({ to: queueSource.to, params: { id: queueSource.params.id } })
+    }
   }
 
   return (
@@ -219,17 +236,30 @@ export default function PlayerDock() {
               </p>
               <p className="mt-1 truncate text-[11px] text-[var(--sea-ink-soft)]/80">
                 {currentTrack?.albumName ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={goToAlbum}
+                      className="player-dock__text-button"
+                      disabled={!currentTrack.albumId}
+                    >
+                      {currentTrack.albumName}
+                    </button>
+                    {queueSource?.label ? ' · 来自 ' : ''}
+                  </>
+                ) : null}
+                {queueSource?.label ? (
                   <button
                     type="button"
-                    onClick={goToAlbum}
+                    onClick={goToSource}
                     className="player-dock__text-button"
-                    disabled={!currentTrack.albumId}
+                    disabled={!queueSource.to}
                   >
-                    {currentTrack.albumName}
+                    {queueSource.label}
                   </button>
-                ) : (
+                ) : !currentTrack?.albumName ? (
                   '底部播放器正在继续向旧版结构收口'
-                )}
+                ) : null}
               </p>
               {lyricPreview.length && !isLyricsOpen ? (
                 <div className="mt-2 space-y-1">

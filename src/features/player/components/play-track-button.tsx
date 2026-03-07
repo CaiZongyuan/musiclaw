@@ -3,6 +3,7 @@ import {
   buildPlayerQueueFromTracks,
   mapNeteaseTrackToPlayerTrack,
 } from '#/features/player/lib/player-track'
+import type { PlayerQueueSource } from '#/features/player/stores/player-store'
 import { usePlayerStore } from '#/features/player/stores/player-store'
 
 interface PlayTrackButtonProps {
@@ -12,6 +13,7 @@ interface PlayTrackButtonProps {
   label?: string
   nextLabel?: string
   showPlayNext?: boolean
+  source?: PlayerQueueSource | null
 }
 
 export default function PlayTrackButton({
@@ -21,6 +23,7 @@ export default function PlayTrackButton({
   label = '播放',
   nextLabel = '下一首',
   showPlayNext = false,
+  source = null,
 }: PlayTrackButtonProps) {
   const enqueueToPlayNext = usePlayerStore((state) => state.enqueueToPlayNext)
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
@@ -30,7 +33,9 @@ export default function PlayTrackButton({
       <div className="play-track-button-group">
         <button
           type="button"
-          onClick={() => loadQueueAndPlay(buildPlayerQueueFromTracks(queue), track.id)}
+          onClick={() =>
+            loadQueueAndPlay(buildPlayerQueueFromTracks(queue), track.id, source)
+          }
           disabled={track.playable === false}
           className={className}
         >
@@ -51,7 +56,9 @@ export default function PlayTrackButton({
   return (
     <button
       type="button"
-      onClick={() => loadQueueAndPlay(buildPlayerQueueFromTracks(queue), track.id)}
+      onClick={() =>
+        loadQueueAndPlay(buildPlayerQueueFromTracks(queue), track.id, source)
+      }
       disabled={track.playable === false}
       className={className}
     >

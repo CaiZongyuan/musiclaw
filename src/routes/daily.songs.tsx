@@ -87,6 +87,7 @@ function DailySongsRoute() {
             <PlayTrackButton
               track={dailyTracks[0]}
               queue={dailyTracks}
+                    source={{ label: '每日推荐', to: '/daily/songs' }}
               className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               label="播放全部"
             />
@@ -120,6 +121,7 @@ function DailySongsRoute() {
                   <PlayTrackButton
                     track={track}
                     queue={dailyTracks}
+                    source={{ label: '每日推荐', to: '/daily/songs' }}
                     showPlayNext
                     className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   />

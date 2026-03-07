@@ -142,7 +142,7 @@ function LikedSongsRoute() {
         .filter((track): track is NeteaseTrack => Boolean(track))
 
       const queueTracks = fullQueueTracks.length > 0 ? fullQueueTracks : baseTracks
-      loadQueueAndPlay(buildPlayerQueueFromTracks(queueTracks))
+      loadQueueAndPlay(buildPlayerQueueFromTracks(queueTracks), undefined, { label: '我喜欢的音乐', to: '/library/liked-songs' })
     } catch (error) {
       setPlayAllError(error instanceof Error ? error.message : '构建完整播放队列失败，请稍后重试')
     } finally {
@@ -248,6 +248,7 @@ function LikedSongsRoute() {
                 <PlayTrackButton
                   track={track}
                   queue={currentPageTracks}
+                  source={{ label: '我喜欢的音乐', to: '/library/liked-songs' }}
                   showPlayNext
                   className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />

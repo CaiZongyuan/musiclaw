@@ -20,6 +20,11 @@ function PlaylistRoute() {
     Route.useLoaderData()
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
   const tracks = data.playlist.tracks as NeteaseTrack[]
+  const queueSource = {
+    label: data.playlist.name,
+    to: '/playlist/$id' as const,
+    params: { id: String(data.playlist.id) },
+  }
 
   return (
     <RoutePlaceholder
@@ -32,7 +37,9 @@ function PlaylistRoute() {
       actions={
         <button
           type="button"
-          onClick={() => loadQueueAndPlay(buildPlayerQueueFromTracks(tracks))}
+          onClick={() =>
+            loadQueueAndPlay(buildPlayerQueueFromTracks(tracks), undefined, queueSource)
+          }
           disabled={tracks.length === 0}
           className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
         >
@@ -62,6 +69,7 @@ function PlaylistRoute() {
               <PlayTrackButton
                 track={track}
                 queue={tracks}
+                source={queueSource}
                 showPlayNext
                 className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
               />

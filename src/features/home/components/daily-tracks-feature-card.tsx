@@ -107,7 +107,7 @@ export default function DailyTracksFeatureCard() {
             return
           }
 
-          loadQueueAndPlay(buildPlayerQueueFromTracks(dailyTracks), dailyTracks[0]?.id)
+          loadQueueAndPlay(buildPlayerQueueFromTracks(dailyTracks), dailyTracks[0]?.id, { label: '每日推荐', to: '/daily/songs' })
         }}
         aria-label="播放每日推荐"
       >

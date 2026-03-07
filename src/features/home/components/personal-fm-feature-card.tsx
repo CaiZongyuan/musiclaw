@@ -72,7 +72,7 @@ export default function PersonalFmFeatureCard() {
       setActiveIndex(0)
 
       if (nextTracks[0]) {
-        loadQueueAndPlay(buildPlayerQueueFromTracks(nextTracks), nextTracks[0].id)
+        loadQueueAndPlay(buildPlayerQueueFromTracks(nextTracks), nextTracks[0].id, { label: '私人 FM' })
       }
     },
   })
@@ -93,7 +93,7 @@ export default function PersonalFmFeatureCard() {
       return
     }
 
-    loadQueueAndPlay(buildPlayerQueueFromTracks(fmTracks), activeTrack.id)
+    loadQueueAndPlay(buildPlayerQueueFromTracks(fmTracks), activeTrack.id, { label: '私人 FM' })
   }
 
   const handleNext = async () => {
@@ -107,7 +107,7 @@ export default function PersonalFmFeatureCard() {
       const nextTracks = result.data ?? []
 
       if (nextTracks[0]) {
-        loadQueueAndPlay(buildPlayerQueueFromTracks(nextTracks), nextTracks[0].id)
+        loadQueueAndPlay(buildPlayerQueueFromTracks(nextTracks), nextTracks[0].id, { label: '私人 FM' })
       }
 
       return
@@ -117,7 +117,7 @@ export default function PersonalFmFeatureCard() {
 
     if (nextTrack) {
       setActiveIndex(activeIndex + 1)
-      loadQueueAndPlay(buildPlayerQueueFromTracks(fmTracks), nextTrack.id)
+      loadQueueAndPlay(buildPlayerQueueFromTracks(fmTracks), nextTrack.id, { label: '私人 FM' })
       return
     }
 
@@ -125,7 +125,7 @@ export default function PersonalFmFeatureCard() {
     const nextTracks = result.data ?? []
 
     if (nextTracks[0]) {
-      loadQueueAndPlay(buildPlayerQueueFromTracks(nextTracks), nextTracks[0].id)
+      loadQueueAndPlay(buildPlayerQueueFromTracks(nextTracks), nextTracks[0].id, { label: '私人 FM' })
     }
   }
 

@@ -48,6 +48,11 @@ function ArtistRoute() {
   const loadQueueAndPlay = usePlayerStore((state) => state.loadQueueAndPlay)
   const tracks = detail.hotSongs as NeteaseTrack[]
   const latestRelease = albums.hotAlbums[0] ?? null
+  const queueSource = {
+    label: detail.artist.name,
+    to: '/artist/$id' as const,
+    params: { id: String(detail.artist.id) },
+  }
 
   return (
     <RoutePlaceholder
@@ -60,7 +65,9 @@ function ArtistRoute() {
       actions={
         <button
           type="button"
-          onClick={() => loadQueueAndPlay(buildPlayerQueueFromTracks(tracks))}
+          onClick={() =>
+            loadQueueAndPlay(buildPlayerQueueFromTracks(tracks), undefined, queueSource)
+          }
           disabled={tracks.length === 0}
           className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
         >
@@ -157,6 +164,7 @@ function ArtistRoute() {
                   <PlayTrackButton
                     track={track}
                     queue={tracks}
+                    source={queueSource}
                     showPlayNext
                     className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                   />
