@@ -1,3 +1,14 @@
+## 主题初始化不要同时依赖 Header 局部状态和根文档脚本
+
+- Context:
+  - 这轮把 `/settings` 从占位页升级为真实设置页，需要让主题切换既能在设置页修改，也能让顶栏 `ThemeToggle` 和 SSR 首屏保持一致
+- Problem:
+  - 如果 Header 组件自己读写 `localStorage.theme`，而设置页又把主题写进 Zustand persist store，首屏初始化、Header 切换和 Settings 切换会出现双源状态，导致主题闪动或不一致
+- Resolution:
+  - 抽出 `src/features/settings/lib/theme.ts` 作为唯一主题读写入口，根文档初始化脚本优先读 `music-claw:settings`，`AppShell` 负责把 store 里的主题同步到 `<html>`
+- Prevention:
+  - 后续凡是会同时被“全局壳体 + 设置页 + 其他快捷入口”修改的 UI 偏好，都优先确认只有一个持久化源，再决定组件层怎么接入
+
 # Lessons Learned
 
 ## 页面级样式追加前先检查是否已存在同名样式块

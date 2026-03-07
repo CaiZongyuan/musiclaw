@@ -3,10 +3,16 @@ import { useShallow } from 'zustand/react/shallow'
 import { fetchUserAccount } from '#/features/auth/api/auth-api'
 import { hasAccountNeteaseSession, useAuthStore } from '#/features/auth/stores/auth-store'
 import PlayerEngine from '#/features/player/components/player-engine'
+import { useSettingsStore } from '#/features/settings/stores/settings-store'
+import {
+  applyThemeMode,
+  persistLegacyThemeMode,
+} from '#/features/settings/lib/theme'
 import AppNavbar from './app-navbar'
 import PlayerDock from './player-dock'
 
 export default function AppShell({ children }: { children: ReactNode }) {
+  const theme = useSettingsStore((state) => state.theme)
   const { loginMode, musicU, profile, rawCookie, setSession } = useAuthStore(
     useShallow((state) => ({
       loginMode: state.loginMode,
@@ -43,6 +49,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
       cancelled = true
     }
   }, [loginMode, musicU, profile, rawCookie, setSession])
+
+  useEffect(() => {
+    applyThemeMode(theme)
+    persistLegacyThemeMode(theme)
+  }, [theme])
 
   return (
     <div className="app-shell min-h-screen pb-36 md:pb-44">

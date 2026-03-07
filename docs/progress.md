@@ -1,3 +1,48 @@
+## 2026-03-07（第十七轮后续修正：Settings 暗色对比与歌词层留白）
+
+- Done:
+  - `src/styles.css` 已修 `Settings` 在 dark mode 下的控件对比度：外观选项卡、`select`、`input` 与 `option` 不再出现白底白字 / 近似白字问题
+  - `Settings` 里的代理地址与端口区域已改成在双列卡片里纵向排布标签 + 输入框，避免输入框过窄导致文本挤成长条
+  - 展开歌词层已收紧顶部信息区和纵向 spacer，弱化分割线，减少歌词区上下空白
+- In progress:
+  - 等待浏览器手测，确认暗色设置页所有控件和歌词展开层的实际观感都稳定
+- Next:
+  - 根据你的继续反馈微调暗色下的 hover / focus / selected 节奏
+- Blockers:
+  - 原生 `select > option` 的具体渲染仍会受浏览器影响；这轮已尽量补齐通用暗色样式，若某个浏览器仍表现异常，再做定向兼容
+
+## 2026-03-07（第十七轮后续修正：歌词层对比度与原版风格回拉）
+
+- Done:
+  - `src/features/player/components/player-lyrics-panel.tsx` 已按旧版歌词页的右侧歌词结构回拉：去掉重卡片感，改为大字号滚动、激活行放大、非激活行降透明度
+  - `src/styles.css` 已补暗色主题下歌词层的更高对比度：背景压暗、封面模糊层更深、当前句与下一句的字色差更明显
+  - 展开歌词现在更接近原版 `lyrics.vue` 的视觉原则：歌词文本本身是主角，容器和 hover 背景尽量退后
+- In progress:
+  - 等待浏览器手测，确认暗色模式下歌词当前句 / 下一句 / 背景三者的层次是否已经足够清晰
+- Next:
+  - 根据你的观感再决定是否继续把歌词层往“更接近全屏页”方向收，比如加左侧封面信息或更强的纵向居中节奏
+- Blockers:
+  - 当前仍是底部播放器里的展开歌词层，不是旧版那种完整全屏歌词页；这轮先优先把视觉原则和对比度拉回正确方向
+
+## 2026-03-07（第十七轮主路径收口：Artist / Album / Playlist / Library / Player / Settings）
+
+- Done:
+  - `src/routes/new-album.tsx` 已把页面提示文案改成“稳定阶段”，这页后续只保留零碎视觉微调，不再继续加新功能
+  - `src/routes/artist.$id.tsx` 已补回更多艺人页节奏：新增“更多信息”区、EP / Single 拆分、相似艺人卡片，以及热门歌曲的展开收起
+  - `src/features/artist/api/artist-api.ts` 已新增相似艺人查询，艺人页 loader 会一起预取相似艺人数据
+  - `src/routes/album.$id.tsx` 已补专辑附加信息区、同艺人更多发行、Disc 分组和更紧凑的列表排版，并增加复制链接 / 网易云打开 / 下一首播放首曲
+  - `src/routes/playlist.$id.tsx` 已补歌单附加信息区、歌单内搜索、更多操作按钮和更高密度的列表排版
+  - `src/routes/library.tsx` 已扩展回更完整的 Library 分区：歌单筛选（全部 / 我创建的 / 收藏的）、播放历史周 / 全部切换、MV / 云盘入口与账号态 / 用户名态降级提示
+  - `src/components/app/player-dock.tsx` 与 `src/features/player/components/player-lyrics-panel.tsx` 已继续收口播放器：歌词层视觉升级、歌词字号接入设置、来源说明更细、按钮文案与 hover / active 节奏更接近旧版
+  - `src/routes/settings.tsx` 已从占位页升级为真实设置页，接入主题、音质、歌词字号、缓存和网络参数；主题切换现在会全局生效并持久化
+  - `src/components/app/app-shell.tsx`、`src/components/ThemeToggle.tsx`、`src/routes/__root.tsx` 与 `src/features/settings/lib/theme.ts` 已统一主题初始化与持久化逻辑，避免 Header 和 Settings 各自维护一套主题来源
+- In progress:
+  - 跑类型检查并修正这一轮多页收口后的样式 / 类型细节
+- Next:
+  - 等你回来看浏览器实测，重点确认 Artist / Album / Playlist / Library / Settings / Player 这些主路径页的布局、交互和状态恢复是否都稳定
+- Blockers:
+  - `Library` 的 MV / 云盘目前先恢复了分区入口和降级路径，还没接真实接口；如果后续要追求更完整 parity，需要再补对应 API
+
 # Progress
 
 ## 2026-03-07（第十六轮后续修正：New Album 样式收口）

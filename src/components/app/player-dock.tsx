@@ -14,10 +14,11 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
+import { NEW_ALBUM_AREA_OPTIONS } from '#/features/album/lib/new-album'
 import PlayerLyricsPanel from '#/features/player/components/player-lyrics-panel'
-import { usePlayerStore } from '#/features/player/stores/player-store'
+import { usePlayerStore, type PlayerQueueSource } from '#/features/player/stores/player-store'
 import { trackLyricsQueryOptions } from '#/features/track/api/track-api'
 import TrackLikeButton from '#/features/track/components/track-like-button'
 import { getLyricPreview } from '#/features/track/lib/lyrics'
@@ -30,6 +31,38 @@ function formatTime(value: number) {
   const minutes = Math.floor(value / 60)
   const seconds = Math.floor(value % 60)
   return `${minutes}:${String(seconds).padStart(2, '0')}`
+}
+
+function describeQueueSource(queueSource: PlayerQueueSource | null) {
+  if (!queueSource?.to) {
+    return null
+  }
+
+  if (queueSource.to === '/new-album') {
+    const areaLabel =
+      NEW_ALBUM_AREA_OPTIONS.find((option) => option.value === queueSource.newAlbumArea)?.label ??
+      '新专辑'
+
+    return `${areaLabel} · 新专辑流`
+  }
+
+  if (queueSource.to === '/explore') {
+    return `${queueSource.exploreCategory ?? '全部'} · Explore`
+  }
+
+  if (queueSource.to === '/search') {
+    return queueSource.search?.q ? `搜索 “${queueSource.search.q}”` : '搜索结果'
+  }
+
+  if (queueSource.to === '/daily/songs') {
+    return '每日推荐'
+  }
+
+  if (queueSource.to === '/library/liked-songs') {
+    return '我喜欢的音乐'
+  }
+
+  return queueSource.label
 }
 
 export default function PlayerDock() {
@@ -90,16 +123,13 @@ export default function PlayerDock() {
     }
   }, [currentTrack])
 
-  const lyricPreview = getLyricPreview(
-    lyricData?.parsed.lyric ?? [],
-    progressSeconds,
-  )
+  const lyricPreview = getLyricPreview(lyricData?.parsed.lyric ?? [], progressSeconds)
   const repeatButtonLabel =
     repeatMode === 'one'
-      ? 'Repeat current track'
+      ? '单曲循环'
       : repeatMode === 'all'
-        ? 'Repeat queue'
-        : 'Repeat off'
+        ? '列表循环'
+        : '关闭循环'
   const RepeatIcon = repeatMode === 'one' ? Repeat1 : Repeat
   const progressValue =
     durationSeconds > 0
@@ -107,7 +137,7 @@ export default function PlayerDock() {
       : Math.max(progressSeconds, 0)
   const artistNames = currentTrack?.artists ?? []
   const artistIds = currentTrack?.artistIds ?? []
-
+  const sourceDetail = useMemo(() => describeQueueSource(queueSource), [queueSource])
   const VolumeIcon = volume === 0 ? VolumeX : volume <= 0.5 ? Volume1 : Volume2
 
   function toggleNextQueuePage() {
@@ -194,7 +224,7 @@ export default function PlayerDock() {
             onChange={(event) => seekTo(Number(event.target.value))}
             disabled={!hasTrack}
             className="player-dock__progress-slider"
-            aria-label="Playback progress"
+            aria-label="播放进度"
           />
           <div className="player-dock__progress-meta text-[11px] text-[var(--sea-ink-soft)]">
             <span>{formatTime(progressValue)}</span>
@@ -209,7 +239,8 @@ export default function PlayerDock() {
               onClick={goToAlbum}
               className="player-dock__cover-shell player-dock__cover-button"
               disabled={!currentTrack?.albumId}
-              aria-label={currentTrack?.albumName ? `Open album ${currentTrack.albumName}` : 'Open current album'}
+              aria-label={currentTrack?.albumName ? `打开专辑 ${currentTrack.albumName}` : '打开当前专辑'}
+              title={currentTrack?.albumName ? `打开专辑 ${currentTrack.albumName}` : '打开当前专辑'}
             >
               {currentTrack?.coverUrl ? (
                 <img
@@ -239,6 +270,7 @@ export default function PlayerDock() {
                           type="button"
                           onClick={() => goToArtist(artistId)}
                           className="player-dock__text-button"
+                          title={`打开艺人 ${artistName}`}
                         >
                           {artistName}
                         </button>
@@ -263,6 +295,7 @@ export default function PlayerDock() {
                       onClick={goToAlbum}
                       className="player-dock__text-button"
                       disabled={!currentTrack.albumId}
+                      title={currentTrack.albumName}
                     >
                       {currentTrack.albumName}
                     </button>
@@ -275,13 +308,19 @@ export default function PlayerDock() {
                     onClick={goToSource}
                     className="player-dock__text-button"
                     disabled={!queueSource.to}
+                    title={`返回 ${queueSource.label}`}
                   >
                     {queueSource.label}
                   </button>
                 ) : !currentTrack?.albumName ? (
-                  '底部播放器正在继续向旧版结构收口'
+                  '当前歌曲会尽量保留来源恢复链路'
                 ) : null}
               </p>
+              {sourceDetail ? (
+                <p className="player-dock__track-context">{sourceDetail}</p>
+              ) : currentTrack?.sourceUrl ? (
+                <p className="player-dock__track-context">音源已恢复，可继续播放</p>
+              ) : null}
               {lyricPreview.length && !isLyricsOpen ? (
                 <div className="player-dock__lyric-preview">
                   {lyricPreview.map((line, index) => (
@@ -310,7 +349,8 @@ export default function PlayerDock() {
               type="button"
               onClick={skipToPrevious}
               className="player-dock__button"
-              aria-label="Previous track"
+              aria-label="上一首"
+              title="上一首"
               disabled={!hasTrack}
             >
               <SkipBack size={18} />
@@ -319,7 +359,8 @@ export default function PlayerDock() {
               type="button"
               onClick={togglePlayback}
               className="player-dock__button player-dock__button--primary"
-              aria-label={isPlaying ? 'Pause playback' : 'Start playback'}
+              aria-label={isPlaying ? '暂停播放' : '开始播放'}
+              title={isPlaying ? '暂停播放' : '开始播放'}
               disabled={!hasTrack}
             >
               {isPlaying ? <Pause size={20} /> : <Play size={20} />}
@@ -328,7 +369,8 @@ export default function PlayerDock() {
               type="button"
               onClick={skipToNext}
               className="player-dock__button"
-              aria-label="Next track"
+              aria-label="下一首"
+              title="下一首"
               disabled={!hasTrack}
             >
               <SkipForward size={18} />
@@ -340,7 +382,8 @@ export default function PlayerDock() {
               type="button"
               onClick={toggleNextQueuePage}
               className={`player-dock__button player-dock__queue-button ${location.pathname === '/next' ? 'player-dock__button--active' : ''}`}
-              aria-label="Open next up queue"
+              aria-label="打开待播队列"
+              title="打开待播队列"
               disabled={!hasTrack}
             >
               <ListMusic size={16} />
@@ -353,6 +396,7 @@ export default function PlayerDock() {
               onClick={cycleRepeatMode}
               className={`player-dock__button ${repeatMode !== 'off' ? 'player-dock__button--active' : ''}`}
               aria-label={repeatButtonLabel}
+              title={repeatButtonLabel}
               aria-pressed={repeatMode !== 'off'}
               disabled={!hasTrack}
             >
@@ -362,7 +406,8 @@ export default function PlayerDock() {
               type="button"
               onClick={toggleShuffleEnabled}
               className={`player-dock__button ${shuffleEnabled ? 'player-dock__button--active' : ''}`}
-              aria-label={shuffleEnabled ? 'Disable shuffle' : 'Enable shuffle'}
+              aria-label={shuffleEnabled ? '关闭随机播放' : '开启随机播放'}
+              title={shuffleEnabled ? '关闭随机播放' : '开启随机播放'}
               aria-pressed={shuffleEnabled}
               disabled={!hasTrack || queue.length < 2}
             >
@@ -378,17 +423,18 @@ export default function PlayerDock() {
                 value={volume}
                 onChange={(event) => setVolume(Number(event.target.value))}
                 className="player-dock__volume-slider"
-                aria-label="Playback volume"
+                aria-label="播放音量"
               />
             </label>
             <button
               type="button"
               onClick={() => setIsLyricsOpen((value) => !value)}
               disabled={!hasTrack}
-              className={`player-dock__button ${isLyricsOpen ? 'player-dock__button--active' : ''}`}
-              aria-label={isLyricsOpen ? 'Collapse lyrics panel' : 'Open lyrics panel'}
+              className={`player-dock__button ${isLyricsOpen ? 'player-dock__button--active player-dock__button--raised' : ''}`}
+              aria-label={isLyricsOpen ? '收起歌词层' : '展开歌词层'}
+              title={isLyricsOpen ? '收起歌词层' : '展开歌词层'}
             >
-              <ChevronUp size={16} />
+              <ChevronUp size={16} className={isLyricsOpen ? 'rotate-180 transition-transform' : 'transition-transform'} />
             </button>
           </div>
         </div>

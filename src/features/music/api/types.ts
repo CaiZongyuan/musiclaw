@@ -11,6 +11,9 @@ export interface NeteaseArtistSummary {
   picUrl?: string
   img1v1Url?: string
   cover?: string
+  musicSize?: number
+  albumSize?: number
+  mvSize?: number
 }
 
 export interface NeteaseAlbumSummary {
@@ -21,6 +24,11 @@ export interface NeteaseAlbumSummary {
   artist?: NeteaseImageOwner
   artists?: NeteaseImageOwner[]
   publishTime?: number
+  company?: string
+  description?: string
+  type?: string
+  size?: number
+  alias?: string[]
 }
 
 export interface NeteaseTrackArtist {
@@ -46,16 +54,32 @@ export interface NeteaseTrack {
   id: number
   name: string
   alia?: string[]
+  tns?: string[]
   ar?: NeteaseTrackArtist[]
   artists?: NeteaseTrackArtist[]
   al?: NeteaseTrackAlbum
   album?: NeteaseTrackAlbum
   dt?: number
+  cd?: string | number
+  no?: number
   fee?: number
   privilege?: NeteaseTrackPrivilege
   noCopyrightRcmd?: Record<string, {}> | null
   playable?: boolean
   reason?: string
+}
+
+export interface NeteaseMvSummary {
+  id: number
+  name: string
+  cover?: string
+  coverUrl?: string
+  imgurl?: string
+  artistId?: number
+  artistName?: string
+  playCount?: number
+  duration?: number
+  publishTime?: string
 }
 
 export interface NeteasePlaylistSummary {

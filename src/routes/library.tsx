@@ -21,7 +21,15 @@ import { usePlayableTracks } from '#/lib/music/playability-client'
 
 export const Route = createFileRoute('/library')({ component: LibraryRoute })
 
-type LibraryTab = 'playlists' | 'albums' | 'artists' | 'playHistory'
+type LibraryTab =
+  | 'playlists'
+  | 'albums'
+  | 'artists'
+  | 'mvs'
+  | 'cloudDisk'
+  | 'playHistory'
+type PlaylistFilter = 'all' | 'mine' | 'liked'
+type PlayHistoryMode = 'week' | 'all'
 
 const DEFAULT_AVATAR_URL =
   'https://s4.music.126.net/style/web2/img/default/default_avatar.jpg?param=120y120'
@@ -34,7 +42,7 @@ function LoginRequiredState() {
         登录后才能查看你的音乐库
       </h1>
       <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--sea-ink-soft)] sm:text-base">
-        这一页现在已经开始接旧版的用户音乐库链路。登录后会优先展示喜欢的歌曲、歌单、收藏专辑、收藏艺人和播放历史。
+        Library 现在已经补回喜欢歌曲入口、歌单筛选、收藏专辑 / 艺人分区和播放历史切换。登录后就能看到这些账号相关内容。
       </p>
       <div className="mt-6 flex flex-wrap gap-3">
         <Link to="/login" className="app-chip">
@@ -64,6 +72,21 @@ function AccountOnlyState({
           账号登录
         </Link>
       </div>
+    </div>
+  )
+}
+
+function LibraryPreviewState({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
+  return (
+    <div className="library-empty-state">
+      <p className="m-0 text-sm font-semibold text-[var(--sea-ink)]">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-[var(--sea-ink-soft)]">{description}</p>
     </div>
   )
 }
@@ -114,7 +137,7 @@ function PlayHistorySection({ items }: { items: UserPlayHistoryItem[] }) {
 
   return items.length > 0 ? (
     <div className="grid gap-3">
-      {items.slice(0, 12).map((item, index) => (
+      {items.slice(0, 16).map((item, index) => (
         <article key={`${item.song.id}-${index}`} className="library-track-row">
           <div className="library-track-row__cover-shell">
             {item.song.al?.picUrl ?? item.song.album?.picUrl ? (
@@ -156,6 +179,8 @@ function LibraryRoute() {
   const location = useLocation()
   const isClient = typeof window !== 'undefined'
   const [currentTab, setCurrentTab] = useState<LibraryTab>('playlists')
+  const [playlistFilter, setPlaylistFilter] = useState<PlaylistFilter>('all')
+  const [playHistoryMode, setPlayHistoryMode] = useState<PlayHistoryMode>('week')
   const { loginMode, musicU, profile, rawCookie } = useAuthStore(
     useShallow((state) => ({
       loginMode: state.loginMode,
@@ -189,12 +214,12 @@ function LibraryRoute() {
   })
 
   const likedAlbumsQuery = useQuery({
-    ...likedAlbumsQueryOptions(8),
+    ...likedAlbumsQueryOptions(12),
     enabled: isClient && hasAccountSession,
   })
 
   const likedArtistsQuery = useQuery({
-    ...likedArtistsQueryOptions(8),
+    ...likedArtistsQueryOptions(12),
     enabled: isClient && hasAccountSession,
   })
 
@@ -209,7 +234,26 @@ function LibraryRoute() {
       [likedSongsQuery.data],
     ),
   )
-  const playlistGroups = playlists.slice(1, 13)
+  const libraryPlaylists = playlists.slice(1, 25)
+  const ownPlaylists = useMemo(
+    () => libraryPlaylists.filter((playlist) => playlist.creator?.id === userId),
+    [libraryPlaylists, userId],
+  )
+  const subscribedPlaylists = useMemo(
+    () => libraryPlaylists.filter((playlist) => playlist.creator?.id !== userId),
+    [libraryPlaylists, userId],
+  )
+  const filteredPlaylists = useMemo(() => {
+    if (playlistFilter === 'mine') {
+      return ownPlaylists
+    }
+
+    if (playlistFilter === 'liked') {
+      return subscribedPlaylists
+    }
+
+    return libraryPlaylists
+  }, [libraryPlaylists, ownPlaylists, playlistFilter, subscribedPlaylists])
   const likedAlbums = useMemo(
     () => (likedAlbumsQuery.data?.data ?? []) as NeteaseAlbumSummary[],
     [likedAlbumsQuery.data],
@@ -222,6 +266,11 @@ function LibraryRoute() {
     () => (playHistoryQuery.data?.weekData ?? []) as UserPlayHistoryItem[],
     [playHistoryQuery.data],
   )
+  const allHistory = useMemo(
+    () => (playHistoryQuery.data?.allData ?? []) as UserPlayHistoryItem[],
+    [playHistoryQuery.data],
+  )
+  const activeHistory = playHistoryMode === 'week' ? weeklyHistory : allHistory
   const likedTrackCovers = likedTracks
     .map((track) => track.al?.picUrl ?? track.album?.picUrl)
     .filter((coverUrl): coverUrl is string => Boolean(coverUrl))
@@ -251,11 +300,22 @@ function LibraryRoute() {
               {profile?.nickname ?? 'My'} 的音乐库
             </h1>
             <p className="library-header__description mt-4 max-w-3xl text-sm leading-7 text-[var(--sea-ink-soft)] sm:text-base">
-              这一页已开始回到旧版 Library 的信息结构：上方保留喜欢的歌曲入口，下方恢复歌单 / 专辑 / 艺人 / 播放历史分区。
+              这一页已经把原版 Library 的几个关键节奏补回来了：上方保留喜欢的歌曲入口，下方恢复歌单筛选、收藏专辑 / 艺人、MV / 云盘分区入口和周 / 全部播放历史切换。
             </p>
+            <div className="library-summary-pills mt-4">
+              <span className="detail-stat-pill">喜欢歌曲 {likedSongsPlaylist?.trackCount ?? likedTracks.length} 首</span>
+              <span className="detail-stat-pill">自建歌单 {ownPlaylists.length} 个</span>
+              <span className="detail-stat-pill">收藏歌单 {subscribedPlaylists.length} 个</span>
+              <span className="detail-stat-pill">模式 {loginMode === 'username' ? '用户名只读' : '账号登录'}</span>
+            </div>
             {loginMode === 'username' ? (
               <div className="library-mode-note mt-4 rounded-[1rem] border border-[var(--line)] bg-[rgba(255,255,255,0.44)] px-4 py-3 text-sm text-[var(--sea-ink-soft)]">
-                当前是用户名只读模式：公开歌单与喜欢歌曲入口可用，收藏专辑、收藏艺人和播放历史需要账号登录。
+                当前是用户名只读模式：公开歌单与喜欢歌曲入口可用，收藏专辑、收藏艺人、MV、云盘和播放历史需要账号登录。
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <Link to="/login/account" className="app-chip">
+                    切换账号登录
+                  </Link>
+                </div>
               </div>
             ) : null}
           </div>
@@ -358,10 +418,12 @@ function LibraryRoute() {
         <div className="library-tabs-row">
           <div className="library-tabs" role="tablist" aria-label="Library sections">
             {[
-              ['playlists', `歌单 ${playlistGroups.length}`],
+              ['playlists', `歌单 ${libraryPlaylists.length}`],
               ['albums', `专辑 ${likedAlbums.length}`],
               ['artists', `艺人 ${likedArtists.length}`],
-              ['playHistory', `最近播放 ${weeklyHistory.length}`],
+              ['mvs', 'MV'],
+              ['cloudDisk', '云盘'],
+              ['playHistory', `最近播放 ${activeHistory.length}`],
             ].map(([value, label]) => (
               <button
                 key={value}
@@ -380,15 +442,33 @@ function LibraryRoute() {
         <div className="library-tab-panel">
           {currentTab === 'playlists' ? (
             <section className="library-section">
-              <div className="library-section__header">
-                <h2 className="library-section__title">歌单</h2>
-                <span className="library-section__count">{playlistGroups.length} 个可见歌单</span>
+              <div className="library-section__header library-section__header--stacked">
+                <div>
+                  <h2 className="library-section__title">歌单</h2>
+                  <span className="library-section__count">{filteredPlaylists.length} 个可见歌单</span>
+                </div>
+                <div className="library-filter-row">
+                  {[
+                    ['all', `全部 ${libraryPlaylists.length}`],
+                    ['mine', `我创建的 ${ownPlaylists.length}`],
+                    ['liked', `收藏的 ${subscribedPlaylists.length}`],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setPlaylistFilter(value as PlaylistFilter)}
+                      className={`app-chip cursor-pointer ${playlistFilter === value ? 'library-filter-chip--active' : ''}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
               {playlistsQuery.isLoading ? (
                 <div className="library-empty-state">正在加载你的歌单列表…</div>
-              ) : playlistGroups.length > 0 ? (
+              ) : filteredPlaylists.length > 0 ? (
                 <div className="library-playlist-grid">
-                  {playlistGroups.map((playlist) => (
+                  {filteredPlaylists.map((playlist) => (
                     <CollectionCoverCard
                       key={playlist.id}
                       id={String(playlist.id)}
@@ -400,7 +480,7 @@ function LibraryRoute() {
                   ))}
                 </div>
               ) : (
-                <div className="library-empty-state">当前还没有拿到你的歌单列表。</div>
+                <div className="library-empty-state">当前筛选条件下还没有可显示的歌单。</div>
               )}
             </section>
           ) : null}
@@ -472,21 +552,78 @@ function LibraryRoute() {
             </section>
           ) : null}
 
-          {currentTab === 'playHistory' ? (
+          {currentTab === 'mvs' ? (
             <section className="library-section">
               <div className="library-section__header">
-                <h2 className="library-section__title">最近播放</h2>
-                <span className="library-section__count">{weeklyHistory.length} 首</span>
+                <h2 className="library-section__title">收藏 MV</h2>
+                <span className="library-section__count">分区入口已恢复</span>
+              </div>
+              {!hasAccountSession ? (
+                <AccountOnlyState
+                  title="收藏 MV 需要账号登录"
+                  description="旧版里的 MV 分区属于账号态内容。先切到账号登录，再继续接入实际收藏 MV 数据。"
+                />
+              ) : (
+                <LibraryPreviewState
+                  title="MV 分区已恢复到 Library 内"
+                  description="这一轮先把分区、标签和降级路径补齐，下一步再把收藏 MV 的真实接口接进来。"
+                />
+              )}
+            </section>
+          ) : null}
+
+          {currentTab === 'cloudDisk' ? (
+            <section className="library-section">
+              <div className="library-section__header">
+                <h2 className="library-section__title">云盘</h2>
+                <span className="library-section__count">分区入口已恢复</span>
+              </div>
+              {!hasAccountSession ? (
+                <AccountOnlyState
+                  title="云盘需要账号登录"
+                  description="用户名只读模式下不能读取云盘歌曲。账号登录后，这里会继续补成更接近原版的云盘分区。"
+                />
+              ) : (
+                <LibraryPreviewState
+                  title="云盘分区已回到 Library 主区块"
+                  description="当前先把旧版的分区结构和降级路径恢复出来，后续再接入真实云盘列表与上传动作。"
+                />
+              )}
+            </section>
+          ) : null}
+
+          {currentTab === 'playHistory' ? (
+            <section className="library-section">
+              <div className="library-section__header library-section__header--stacked">
+                <div>
+                  <h2 className="library-section__title">最近播放</h2>
+                  <span className="library-section__count">{activeHistory.length} 首</span>
+                </div>
+                <div className="library-filter-row">
+                  {[
+                    ['week', `最近一周 ${weeklyHistory.length}`],
+                    ['all', `全部 ${allHistory.length}`],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setPlayHistoryMode(value as PlayHistoryMode)}
+                      className={`app-chip cursor-pointer ${playHistoryMode === value ? 'library-filter-chip--active' : ''}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
               {!hasAccountSession ? (
                 <AccountOnlyState
                   title="播放历史需要账号登录"
-                  description="旧版 Library 的播放历史属于账号态内容。完成账号登录后，这里会显示最近一周的播放记录预览。"
+                  description="旧版 Library 的播放历史属于账号态内容。完成账号登录后，这里会显示最近一周和全部播放记录。"
                 />
               ) : playHistoryQuery.isLoading ? (
                 <div className="library-empty-state">正在加载播放历史…</div>
               ) : (
-                <PlayHistorySection items={weeklyHistory} />
+                <PlayHistorySection items={activeHistory} />
               )}
             </section>
           ) : null}

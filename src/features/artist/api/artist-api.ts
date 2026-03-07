@@ -24,12 +24,21 @@ interface ArtistAlbumsResponse {
   more?: boolean
 }
 
+interface SimilarArtistsResponse {
+  code: number
+  artists?: NeteaseArtistSummary[]
+}
+
 export interface NormalizedTopArtistsResponse extends TopArtistsResponse {
   artists: NeteaseArtistSummary[]
 }
 
 export interface NormalizedArtistAlbumsResponse extends ArtistAlbumsResponse {
   hotAlbums: NeteaseAlbumSummary[]
+}
+
+export interface NormalizedSimilarArtistsResponse extends SimilarArtistsResponse {
+  artists: NeteaseArtistSummary[]
 }
 
 export function normalizeTopArtistsResponse(
@@ -51,6 +60,15 @@ export function normalizeArtistAlbumsResponse(
   return {
     ...response,
     hotAlbums: Array.isArray(response.hotAlbums) ? response.hotAlbums : [],
+  }
+}
+
+export function normalizeSimilarArtistsResponse(
+  response: SimilarArtistsResponse,
+): NormalizedSimilarArtistsResponse {
+  return {
+    ...response,
+    artists: Array.isArray(response.artists) ? response.artists : [],
   }
 }
 
@@ -98,6 +116,19 @@ export async function fetchArtistAlbums(
   return normalizeArtistAlbumsResponse(response)
 }
 
+export async function fetchSimilarArtists(id: string | number) {
+  const response = await requestNeteaseApi<SimilarArtistsResponse>({
+    url: '/simi/artist',
+    method: 'GET',
+    params: {
+      id: Number(id),
+      timestamp: Date.now(),
+    },
+  })
+
+  return normalizeSimilarArtistsResponse(response)
+}
+
 export const getTopArtists = createServerFn({ method: 'GET' })
   .inputValidator((input: { type?: number } | undefined) => ({
     type: input?.type,
@@ -118,9 +149,13 @@ export const getArtistAlbums = createServerFn({ method: 'GET' })
       offset: input.offset ?? 0,
     }),
   )
-  .handler(async ({ data }) =>
-    fetchArtistAlbums(data.id, data.limit, data.offset),
-  )
+  .handler(async ({ data }) => fetchArtistAlbums(data.id, data.limit, data.offset))
+
+export const getSimilarArtists = createServerFn({ method: 'GET' })
+  .inputValidator((input: { id: string | number }) => ({
+    id: Number(input.id),
+  }))
+  .handler(async ({ data }) => fetchSimilarArtists(data.id))
 
 export function topArtistsQueryOptions() {
   return queryOptions({
@@ -144,5 +179,12 @@ export function artistAlbumsQueryOptions(
   return queryOptions({
     queryKey: ['artist', Number(id), 'albums', limit, offset],
     queryFn: () => getArtistAlbums({ data: { id, limit, offset } }),
+  })
+}
+
+export function similarArtistsQueryOptions(id: string | number) {
+  return queryOptions({
+    queryKey: ['artist', Number(id), 'similar'],
+    queryFn: () => getSimilarArtists({ data: { id } }),
   })
 }
