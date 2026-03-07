@@ -299,7 +299,7 @@ function LibraryRoute() {
                   {likedSongsPlaylist?.trackCount ?? likedTracks.length} 首歌曲
                 </p>
               </div>
-              <span className="library-liked-card__pill">Open</span>
+              <span className="library-liked-card__pill">▶</span>
             </div>
           </Link>
 

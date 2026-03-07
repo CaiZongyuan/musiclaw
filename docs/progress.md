@@ -13,6 +13,7 @@
   - 等待真实浏览器手测，确认 `Library / Playlist / Album / Artist` 的新骨架在桌面端与移动端都没有明显布局错位
   - 本轮继续等你确认歌曲列表封面与 `/library` liked songs 卡片封面是否已恢复可见
   - `album` 页歌曲行封面已补专辑封面兜底；`artist` 页热门歌曲已改为额外补一次 `song/detail`，用于拿回更完整的封面信息
+  - 已继续收一轮 `Library / Playlist / Album / Artist` 的样式细节：缩小 Library 头像尺寸、让 liked songs 卡更接近旧版主色块节奏、收紧 tabs 形态，并将详情页标题/信息区字号与间距继续往原版靠拢
 - Next:
   - 根据你的手测结果继续微调这些页面的字号、按钮、卡片密度与间距，让它们进一步贴近原版
   - 若这轮结构稳定，下一步继续把 `MV / Explore / New Album` 等仍带占位痕迹的页面继续收口

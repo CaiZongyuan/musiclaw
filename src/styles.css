@@ -1465,7 +1465,7 @@ a {
 .library-screen {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 2.2rem;
 }
 
 .library-header {
@@ -1479,11 +1479,11 @@ a {
 }
 
 .library-header__avatar {
-  width: 5.5rem;
-  height: 5.5rem;
+  width: 3rem;
+  height: 3rem;
   border-radius: 999px;
   border: 1px solid color-mix(in oklab, var(--line) 80%, transparent 20%);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.1);
   object-fit: cover;
 }
 
@@ -1499,8 +1499,8 @@ a {
 
 .library-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.35fr);
-  gap: 1.25rem;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.35fr);
+  gap: 2rem;
 }
 
 .library-section__header {
@@ -1525,10 +1525,10 @@ a {
 
 .library-liked-card {
   display: flex;
-  min-height: 19rem;
+  min-height: 18rem;
   flex-direction: column;
   justify-content: space-between;
-  padding: 1.5rem;
+  padding: 1.125rem 1.5rem;
   border: 1px solid var(--line);
   border-radius: 1.75rem;
   color: inherit;
@@ -1617,8 +1617,8 @@ a {
 .library-liked-card__lyric-line {
   margin: 0;
   color: var(--sea-ink);
-  font-size: 1.1rem;
-  line-height: 1.5;
+  font-size: 0.92rem;
+  line-height: 1.55;
   font-weight: 700;
 }
 
@@ -1632,29 +1632,30 @@ a {
 .library-liked-card__title {
   margin: 0;
   color: var(--sea-ink);
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: 800;
 }
 
 .library-liked-card__subtitle {
-  margin: 0.35rem 0 0;
+  margin: 0.18rem 0 0;
   color: var(--sea-ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.9rem;
 }
 
 .library-liked-card__pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 4rem;
-  height: 2rem;
-  padding: 0 0.85rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
   border-radius: 999px;
-  border: 1px solid color-mix(in oklab, var(--lagoon-deep) 30%, var(--line));
-  background: color-mix(in oklab, var(--lagoon-deep) 12%, transparent);
-  color: var(--lagoon-deep);
-  font-size: 0.76rem;
+  border: 0;
+  background: var(--lagoon-deep);
+  color: white;
+  font-size: 1rem;
   font-weight: 800;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.16);
 }
 
 .library-liked-list {
@@ -1677,7 +1678,7 @@ a {
 .library-tabs {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.25rem;
   flex-wrap: wrap;
 }
 
@@ -1685,13 +1686,13 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 2.2rem;
-  padding: 0 0.95rem;
+  height: 2.1rem;
+  padding: 0 0.75rem;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: 0.7rem;
   background: transparent;
   color: var(--sea-ink-soft);
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 700;
 }
 
@@ -1784,18 +1785,18 @@ a {
 .detail-screen {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
-  padding-top: 0.25rem;
+  gap: 2.25rem;
+  padding-top: 2rem;
   padding-bottom: 2rem;
 }
 
 .detail-hero {
   display: grid;
-  grid-template-columns: 16rem minmax(0, 1fr);
-  gap: 2rem;
-  padding: 1.5rem;
-  border-radius: 2rem;
-  background: color-mix(in oklab, var(--surface-strong) 98%, transparent);
+  grid-template-columns: 18rem minmax(0, 1fr);
+  gap: 3rem;
+  padding: 1.5rem 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .detail-hero__cover-shell {
@@ -1857,11 +1858,20 @@ a {
   word-break: break-word;
 }
 
+.detail-hero--playlist .detail-hero__title {
+  font-size: clamp(2.2rem, 2rem + 0.5vw, 2.85rem);
+}
+
+.detail-hero--album .detail-hero__title,
+.detail-hero--artist .detail-hero__title {
+  font-size: clamp(2.9rem, 2.3rem + 1.2vw, 3.5rem);
+}
+
 .detail-hero__meta {
-  margin: 0.85rem 0 0;
+  margin: 1.1rem 0 0;
   color: var(--sea-ink-soft);
-  font-size: 0.95rem;
-  line-height: 1.7;
+  font-size: 1rem;
+  line-height: 1.65;
 }
 
 .detail-inline-link {
@@ -1895,11 +1905,11 @@ a {
 }
 
 .detail-hero__description {
-  margin: 1rem 0 0;
+  margin: 1.35rem 0 0;
   color: var(--sea-ink-soft);
-  font-size: 0.95rem;
-  line-height: 1.8;
-  max-width: 48rem;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  max-width: 42rem;
 }
 
 .detail-hero__actions {
@@ -1926,8 +1936,9 @@ a {
 .detail-section__title {
   margin: 0;
   color: var(--sea-ink);
-  font-size: 1.55rem;
-  font-weight: 800;
+  font-size: 1.375rem;
+  font-weight: 700;
+  opacity: 0.92;
 }
 
 .detail-section__count {
@@ -2099,7 +2110,8 @@ a {
   }
 
   .detail-hero {
-    grid-template-columns: 13rem minmax(0, 1fr);
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: 2rem;
   }
 }
 
@@ -2139,6 +2151,7 @@ a {
   .detail-hero {
     grid-template-columns: 1fr;
     gap: 1.25rem;
+    padding: 0;
   }
 
   .detail-hero__cover-shell {
