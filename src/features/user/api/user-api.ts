@@ -27,6 +27,12 @@ interface LikedArtistsResponse {
   hasMore?: boolean
 }
 
+interface LikedSongIdsResponse {
+  code: number
+  ids?: number[]
+  checkPoint?: number
+}
+
 export interface UserPlayHistoryItem {
   playCount: number
   score?: number
@@ -117,6 +123,24 @@ export async function fetchUserPlayHistory(
   }
 }
 
+export async function fetchLikedSongIds(uid: string | number) {
+  const response = await apiClient.get<LikedSongIdsResponse>('/likelist', {
+    params: {
+      uid: Number(uid),
+      timestamp: Date.now(),
+    },
+    meta: {
+      attachNeteaseCookie: true,
+      attachRealIp: true,
+    },
+  })
+
+  return {
+    ...response.data,
+    ids: Array.isArray(response.data.ids) ? response.data.ids : [],
+  }
+}
+
 export function userPlaylistsQueryOptions(uid: string | number, limit = 100) {
   return queryOptions({
     queryKey: ['user', Number(uid), 'playlists', limit],
@@ -135,6 +159,13 @@ export function likedArtistsQueryOptions(limit = 12) {
   return queryOptions({
     queryKey: ['user', 'liked-artists', limit],
     queryFn: () => fetchLikedArtists(limit),
+  })
+}
+
+export function likedSongIdsQueryOptions(uid: string | number) {
+  return queryOptions({
+    queryKey: ['user', Number(uid), 'liked-song-ids'],
+    queryFn: () => fetchLikedSongIds(uid),
   })
 }
 

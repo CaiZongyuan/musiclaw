@@ -1,5 +1,16 @@
 # Lessons Learned
 
+## 依赖浏览器持久化登录态的收藏状态不要塞进 SSR loader
+
+- Context:
+  - 播放器里的“喜欢当前歌曲”需要先读取本地账号 cookie，再拉当前用户的 `likelist`
+- Problem:
+  - 如果把“当前歌曲是否已喜欢”放到 SSR loader 里，服务端首次渲染拿不到浏览器 localStorage 里的登录态，按钮会反复在“未收藏 / 已收藏”之间闪动，甚至直接误判
+- Resolution:
+  - 这类“当前用户专属状态”优先走客户端 query，并在 mutation 后做乐观更新 + query 失效
+- Prevention:
+  - 后续凡是和“当前用户是否已收藏 / 已点赞 / 已订阅”相关的轻量状态，都优先评估客户端 query 是否更合适，再决定是否接入 route loader
+
 ## 账号态专属推荐优先走客户端 Query
 
 - Context:

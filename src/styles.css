@@ -2056,6 +2056,19 @@ a {
   line-height: 1rem;
 }
 
+.player-dock__like-button {
+  flex-shrink: 0;
+}
+
+.player-dock__like-icon {
+  color: var(--sea-ink-soft);
+  transition: color 140ms ease;
+}
+
+.player-dock__like-icon--active {
+  color: #ef5d78;
+}
+
 @media (max-width: 1100px) {
   .library-collection-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

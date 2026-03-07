@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { createServerFn } from '@tanstack/react-start'
 import { requestNeteaseApi } from '#/lib/api/netease-server'
+import { apiClient } from '#/lib/api/client'
 import { mapTrackPlayableStatus } from '#/lib/music/playability'
 import { normalizeTrackLyricsResponse } from '#/features/track/lib/lyrics'
 import type {
@@ -57,6 +58,22 @@ export async function fetchTrackSource(
   })
 
   return response.data[0] ?? ({ id: Number(id), url: null } as NeteaseTrackSourceItem)
+}
+
+export async function toggleTrackLike(id: string | number, like = true) {
+  const response = await apiClient.get<{ code: number }>('/like', {
+    params: {
+      id: Number(id),
+      like,
+      timestamp: Date.now(),
+    },
+    meta: {
+      attachNeteaseCookie: true,
+      attachRealIp: true,
+    },
+  })
+
+  return response.data
 }
 
 export const getTrackDetail = createServerFn({ method: 'GET' })

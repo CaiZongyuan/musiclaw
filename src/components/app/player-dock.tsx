@@ -19,6 +19,7 @@ import { useShallow } from 'zustand/react/shallow'
 import PlayerLyricsPanel from '#/features/player/components/player-lyrics-panel'
 import { usePlayerStore } from '#/features/player/stores/player-store'
 import { trackLyricsQueryOptions } from '#/features/track/api/track-api'
+import TrackLikeButton from '#/features/track/components/track-like-button'
 import { getLyricPreview } from '#/features/track/lib/lyrics'
 
 function formatTime(value: number) {
@@ -190,6 +191,10 @@ export default function PlayerDock() {
                 </div>
               ) : null}
             </div>
+            <TrackLikeButton
+              trackId={currentTrack?.id}
+              className="player-dock__button player-dock__like-button"
+            />
           </div>
 
           <div className="player-dock__center-controls">

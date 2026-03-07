@@ -1,5 +1,22 @@
 # Progress
 
+## 2026-03-07（第八轮功能收口：播放器喜欢按钮）
+
+- Done:
+  - 底部播放器已补回当前歌曲“喜欢 / 取消喜欢”按钮，更接近旧版 `Player.vue` 的左侧信息区交互
+  - 新增 `src/features/user/api/user-api.ts` 的 `likedSongIdsQueryOptions`，可拉取当前账号已喜欢歌曲 id 列表
+  - 新增 `src/features/track/api/track-api.ts` 的 `toggleTrackLike`，接入 `/like` 接口
+  - 新增 `src/features/track/components/track-like-button.tsx`，负责账号态判断、乐观更新和相关 query 失效
+  - `src/components/app/player-dock.tsx` 已接入喜欢按钮，当前播放歌曲可直接收藏或取消收藏
+  - 已运行 `./node_modules/.bin/tsc --noEmit`，当前 TypeScript 校验通过
+- In progress:
+  - 等待真实浏览器手测，确认播放器收藏动作、按钮高亮与 `Library / liked songs` 的后续联动是否稳定
+- Next:
+  - 根据手测结果决定是否把同一套喜欢按钮复用到歌词面板、歌曲列表等页面
+  - 继续推进 Player / Navbar / 首页剩余 parity 细节
+- Blockers:
+  - 喜欢按钮依赖账号态 cookie；用户名只读模式下只能跳到 `/login/account`
+
 ## 2026-03-07（第七轮功能收口：首页 For You 真实业务）
 
 - Done:
