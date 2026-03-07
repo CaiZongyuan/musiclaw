@@ -32,6 +32,7 @@ interface PlayerStoreActions {
   pause: () => void
   play: () => void
   playTrack: (trackId: number) => void
+  removeTrackFromQueue: (trackId: number) => void
   resetPlayer: () => void
   seekTo: (progressSeconds: number) => void
   setDurationSeconds: (durationSeconds: number) => void
@@ -84,7 +85,7 @@ function clampProgress(progressSeconds: number, durationSeconds: number) {
   return Math.min(progressSeconds, durationSeconds)
 }
 
-function getNextRepeatMode(repeatMode: RepeatMode): RepeatMode {
+function getNextRepeatMode(repeatMode: RepeatMode) {
   if (repeatMode === 'off') {
     return 'all'
   }
@@ -112,7 +113,7 @@ function resolveDurationSeconds(
   currentTrackId: number | null,
 ) {
   return clampDuration(
-    (queue.find((track) => track.id === currentTrackId)?.durationMs ?? 0) / 1000
+    (queue.find((track) => track.id === currentTrackId)?.durationMs ?? 0) / 1000,
   )
 }
 
@@ -156,6 +157,43 @@ export const usePlayerStore = create<PlayerStoreState>()(
           progressSeconds: 0,
           durationSeconds: resolveDurationSeconds(state.queue, trackId),
         })),
+      removeTrackFromQueue: (trackId) =>
+        set((state) => {
+          const removedIndex = state.queue.findIndex((track) => track.id === trackId)
+
+          if (removedIndex === -1) {
+            return state
+          }
+
+          const nextQueue = state.queue.filter((track) => track.id !== trackId)
+
+          if (nextQueue.length === 0) {
+            return {
+              queue: [],
+              currentTrackId: null,
+              isPlaying: false,
+              progressSeconds: 0,
+              durationSeconds: 0,
+            }
+          }
+
+          if (state.currentTrackId !== trackId) {
+            return {
+              queue: nextQueue,
+            }
+          }
+
+          const fallbackTrack =
+            nextQueue[Math.min(removedIndex, nextQueue.length - 1)] ?? nextQueue[0]
+
+          return {
+            queue: nextQueue,
+            currentTrackId: fallbackTrack?.id ?? null,
+            isPlaying: fallbackTrack ? state.isPlaying : false,
+            progressSeconds: 0,
+            durationSeconds: resolveDurationSeconds(nextQueue, fallbackTrack?.id ?? null),
+          }
+        }),
       resetPlayer: () => set(defaultPlayerSnapshot),
       seekTo: (progressSeconds) =>
         set((state) => ({

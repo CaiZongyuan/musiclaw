@@ -1,5 +1,23 @@
 # Progress
 
+## 2026-03-07（第二轮功能收口：Next Up 队列页）
+
+- Done:
+  - 对照旧版 `src/views/next.vue` 明确当前阶段目标：至少先补齐“当前播放 + 下一首列表”的核心可用功能
+  - 将 `/next` 从占位页升级为真实队列页，展示当前播放歌曲和后续最多 100 首队列，见 `src/routes/next.tsx`
+  - 队列页已支持直接点击“播放”切换当前歌曲
+  - 为播放器 store 新增 `removeTrackFromQueue`，支持从后续队列中移除歌曲，见 `src/features/player/stores/player-store.ts`
+  - 为 `Next Up` 页面补充独立样式，使其和当前播放器视觉语言保持一致，见 `src/styles.css`
+- In progress:
+  - 继续把播放器相关页面从“可用”推进到更接近旧版的交互完整度
+- Next:
+  - 给 `/next` 继续补更接近旧版的列表细节与当前播放高亮表现
+  - 继续补旧版缺失路由：`/artist/:id/mv`、`/library/liked-songs`
+  - 评估是否为播放器增加“喜欢歌曲”和“列表来源跳转”等旧版能力
+- Blockers:
+  - 当前 store 还没有旧版 `playNextList` 那种“插队播放”独立队列能力，因此 `/next` 暂时只展示当前主队列
+  - 仓库当前缺少部分生成产物，导致全量 TypeScript 检查无法通过（如 `routeTree.gen`、Paraglide 运行时代码）
+
 ## 2026-03-07（第一轮 UI 收口：Navbar / Player / 首页）
 
 - Done:
