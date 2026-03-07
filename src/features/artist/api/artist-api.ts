@@ -1,8 +1,9 @@
 import { queryOptions } from '@tanstack/react-query'
 import { createServerFn } from '@tanstack/react-start'
-import { mapTrackPlayableStatus } from '#/lib/music/playability'
 import { requestNeteaseApi } from '#/lib/api/netease-server'
+import { mapTrackPlayableStatus } from '#/lib/music/playability'
 import type {
+  NeteaseAlbumSummary,
   NeteaseArtistDetailResponse,
   NeteaseArtistSummary,
 } from '#/features/music/api/types'
@@ -17,8 +18,18 @@ interface TopArtistsResponse {
   artists?: NeteaseArtistSummary[]
 }
 
+interface ArtistAlbumsResponse {
+  code: number
+  hotAlbums: NeteaseAlbumSummary[]
+  more?: boolean
+}
+
 export interface NormalizedTopArtistsResponse extends TopArtistsResponse {
   artists: NeteaseArtistSummary[]
+}
+
+export interface NormalizedArtistAlbumsResponse extends ArtistAlbumsResponse {
+  hotAlbums: NeteaseAlbumSummary[]
 }
 
 export function normalizeTopArtistsResponse(
@@ -31,6 +42,15 @@ export function normalizeTopArtistsResponse(
   return {
     ...response,
     artists,
+  }
+}
+
+export function normalizeArtistAlbumsResponse(
+  response: ArtistAlbumsResponse,
+): NormalizedArtistAlbumsResponse {
+  return {
+    ...response,
+    hotAlbums: Array.isArray(response.hotAlbums) ? response.hotAlbums : [],
   }
 }
 
@@ -60,6 +80,24 @@ export async function fetchArtistDetail(id: string | number) {
   }
 }
 
+export async function fetchArtistAlbums(
+  id: string | number,
+  limit = 24,
+  offset = 0,
+) {
+  const response = await requestNeteaseApi<ArtistAlbumsResponse>({
+    url: '/artist/album',
+    method: 'GET',
+    params: {
+      id: Number(id),
+      limit,
+      offset,
+    },
+  })
+
+  return normalizeArtistAlbumsResponse(response)
+}
+
 export const getTopArtists = createServerFn({ method: 'GET' })
   .inputValidator((input: { type?: number } | undefined) => ({
     type: input?.type,
@@ -72,6 +110,18 @@ export const getArtistDetail = createServerFn({ method: 'GET' })
   }))
   .handler(async ({ data }) => fetchArtistDetail(data.id))
 
+export const getArtistAlbums = createServerFn({ method: 'GET' })
+  .inputValidator(
+    (input: { id: string | number; limit?: number; offset?: number }) => ({
+      id: Number(input.id),
+      limit: input.limit ?? 24,
+      offset: input.offset ?? 0,
+    }),
+  )
+  .handler(async ({ data }) =>
+    fetchArtistAlbums(data.id, data.limit, data.offset),
+  )
+
 export function topArtistsQueryOptions() {
   return queryOptions({
     queryKey: ['home', 'top-artists'],
@@ -81,7 +131,18 @@ export function topArtistsQueryOptions() {
 
 export function artistDetailQueryOptions(id: string | number) {
   return queryOptions({
-    queryKey: ['artist', Number(id)],
+    queryKey: ['artist', Number(id), 'detail'],
     queryFn: () => getArtistDetail({ data: { id } }),
+  })
+}
+
+export function artistAlbumsQueryOptions(
+  id: string | number,
+  limit = 24,
+  offset = 0,
+) {
+  return queryOptions({
+    queryKey: ['artist', Number(id), 'albums', limit, offset],
+    queryFn: () => getArtistAlbums({ data: { id, limit, offset } }),
   })
 }

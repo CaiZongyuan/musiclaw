@@ -199,3 +199,14 @@
   - 在 `track/lib/lyrics.ts` 中抽出 `getActiveLyricIndex` 和 `getLyricPreview`，组件只消费 helper 的结果
 - Prevention:
   - 后续扩展逐字歌词、翻译歌词对齐和滚动定位时，继续优先扩展 helper，再让 UI 复用同一套逻辑
+
+## 同一路由的扩展区块优先并入已有 loader
+
+- Context:
+  - 艺人页后续会逐步追加热门歌曲、专辑、MV 等多个区块
+- Problem:
+  - 如果每个区块各自发请求，页面容易出现多段加载闪烁，也会让错误恢复路径分散
+- Resolution:
+  - 让艺人页 loader 统一 `Promise.all` 组合详情和专辑请求，再由组件一次消费
+- Prevention:
+  - 后续给艺人页补 MV、相似艺人等区块时，优先评估是否并入同一路由 loader，而不是先散落到多个组件请求
