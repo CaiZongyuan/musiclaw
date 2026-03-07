@@ -23,6 +23,7 @@ import { Route as MvIdRouteImport } from './routes/mv.$id'
 import { Route as LoginUsernameRouteImport } from './routes/login.username'
 import { Route as LoginAccountRouteImport } from './routes/login.account'
 import { Route as LibraryLikedSongsRouteImport } from './routes/library.liked-songs'
+import { Route as LastfmCallbackRouteImport } from './routes/lastfm.callback'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoI18nRouteImport } from './routes/demo.i18n'
 import { Route as DemoBetterAuthRouteImport } from './routes/demo/better-auth'
@@ -101,6 +102,11 @@ const LibraryLikedSongsRoute = LibraryLikedSongsRouteImport.update({
   path: '/liked-songs',
   getParentRoute: () => LibraryRoute,
 } as any)
+const LastfmCallbackRoute = LastfmCallbackRouteImport.update({
+  id: '/lastfm/callback',
+  path: '/lastfm/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
   id: '/demo/tanstack-query',
   path: '/demo/tanstack-query',
@@ -153,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/lastfm/callback': typeof LastfmCallbackRoute
   '/library/liked-songs': typeof LibraryLikedSongsRoute
   '/login/account': typeof LoginAccountRoute
   '/login/username': typeof LoginUsernameRoute
@@ -176,6 +183,7 @@ export interface FileRoutesByTo {
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/lastfm/callback': typeof LastfmCallbackRoute
   '/library/liked-songs': typeof LibraryLikedSongsRoute
   '/login/account': typeof LoginAccountRoute
   '/login/username': typeof LoginUsernameRoute
@@ -200,6 +208,7 @@ export interface FileRoutesById {
   '/demo/better-auth': typeof DemoBetterAuthRoute
   '/demo/i18n': typeof DemoI18nRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/lastfm/callback': typeof LastfmCallbackRoute
   '/library/liked-songs': typeof LibraryLikedSongsRoute
   '/login/account': typeof LoginAccountRoute
   '/login/username': typeof LoginUsernameRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/demo/better-auth'
     | '/demo/i18n'
     | '/demo/tanstack-query'
+    | '/lastfm/callback'
     | '/library/liked-songs'
     | '/login/account'
     | '/login/username'
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/demo/better-auth'
     | '/demo/i18n'
     | '/demo/tanstack-query'
+    | '/lastfm/callback'
     | '/library/liked-songs'
     | '/login/account'
     | '/login/username'
@@ -271,6 +282,7 @@ export interface FileRouteTypes {
     | '/demo/better-auth'
     | '/demo/i18n'
     | '/demo/tanstack-query'
+    | '/lastfm/callback'
     | '/library/liked-songs'
     | '/login/account'
     | '/login/username'
@@ -295,6 +307,7 @@ export interface RootRouteChildren {
   DemoBetterAuthRoute: typeof DemoBetterAuthRoute
   DemoI18nRoute: typeof DemoI18nRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  LastfmCallbackRoute: typeof LastfmCallbackRoute
   MvIdRoute: typeof MvIdRoute
   PlaylistIdRoute: typeof PlaylistIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -400,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryLikedSongsRouteImport
       parentRoute: typeof LibraryRoute
     }
+    '/lastfm/callback': {
+      id: '/lastfm/callback'
+      path: '/lastfm/callback'
+      fullPath: '/lastfm/callback'
+      preLoaderRoute: typeof LastfmCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/tanstack-query': {
       id: '/demo/tanstack-query'
       path: '/demo/tanstack-query'
@@ -491,6 +511,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoBetterAuthRoute: DemoBetterAuthRoute,
   DemoI18nRoute: DemoI18nRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  LastfmCallbackRoute: LastfmCallbackRoute,
   MvIdRoute: MvIdRoute,
   PlaylistIdRoute: PlaylistIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

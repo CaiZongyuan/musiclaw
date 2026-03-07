@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title>music-claw logo</title>
+  <desc>Gradient music note inside a circular badge.</desc>
+  <defs>
+    <linearGradient id="music-claw-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4fb8b2" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="56" fill="url(#music-claw-gradient)" />
+  <path
+    d="M83 28v45.8c-3.2-2.1-7.3-3.3-11.7-3.3-10 0-18.1 6.4-18.1 14.3S61.3 99 71.3 99s18.1-6.4 18.1-14.3V47.7l16.6-3.7V28.5L83 33.8V28Z"
+    fill="#fff"
+  />
+</svg>

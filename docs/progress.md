@@ -1,3 +1,38 @@
+## 2026-03-07（最终审查后续修正：Daily 封面 / Build / Last.fm / 文档收尾）
+
+- Done:
+  - `src/routes/daily.songs.tsx` 已补回日推歌曲列表封面，现已复用与 `liked songs` 一致的歌曲行骨架
+  - 已新增 `src/routes/lastfm.callback.tsx` 与 `src/features/lastfm/api/lastfm-api.ts`，补上 `/lastfm/callback` 的最小可用回调链路：读取 `token`、在服务端换取 session、写入浏览器 `localStorage.lastfm`
+  - 已新增 `src/logo.svg`，修复 `src/routes/demo.i18n.tsx` 在生产构建时的静态资源缺失
+  - `vite.config.ts` 已默认把 `WRANGLER_LOG_PATH` 指向仓库内 `.wrangler/logs`，避免当前环境继续往无权限目录写日志
+  - 已更新 `README.md`、`README-zh.md`、`.env.example`、`docs/todo-2026-03-07.md` 与 `docs/progress.md`，同步当前范围：`MV` 与云盘不再作为本轮必须完成项
+  - 已重新验证 `./node_modules/.bin/tsc --noEmit`、`bun run test` 与 `bun run build`，当前类型检查、测试与生产构建全部通过
+- In progress:
+  - 等待浏览器手测，确认 `/daily/songs` 封面和 `/lastfm/callback` 行为都符合预期
+- Next:
+  - 若你确认无误，这一轮即可视为完成交付
+- Blockers:
+  - 若要真正完成 Last.fm 授权闭环，运行环境仍需要提供 `LASTFM_API_KEY` 与 `LASTFM_API_SHARED_SECRET`
+
+## 2026-03-07（最终审查：按“暂不做 MV / 云盘”重新收口）
+
+- Done:
+  - 已完成一轮最终审查，并结合当前代码、`docs/todo-2026-03-07.md`、`README.md` 与实际路由状态重新核对交付边界
+  - 已确认当前用户决定：**本轮不做 MV 功能，也不做云盘功能**；后续收尾不再把 `/mv/:id`、`/artist/:id/mv` 与 `Library` 云盘分区作为必须完成项
+  - 已运行 `bun run test`，当前 10 个测试文件、41 个测试全部通过
+  - 已运行 `./node_modules/.bin/tsc --noEmit`，当前 TypeScript 校验通过
+  - 已运行 `bun run build`，确认当前仍有两个独立收尾问题：`src/routes/demo.i18n.tsx` 依赖的 `../logo.svg` 缺失，以及当前环境下 `wrangler` 写日志权限报错
+- In progress:
+  - 按新的范围重新判断“还需要做什么”，优先只保留不含 MV / 云盘的收尾项
+- Next:
+  - 收口 `Last.fm Callback` 缺失路由
+  - 评估是否需要把搜索 URL 从当前 query 形式继续追到更接近原版的路径形式（`/search/:keywords/:type`）
+  - 继续决定是否还要收 `Daily Songs / New Album / Settings` 的页面结构 parity，还是以当前“能用 + 少量过渡痕迹”直接交付
+  - 单独修 `build`：补 `src/logo.svg` 或移除 `demo.i18n` 的资源依赖，并处理 `wrangler` 日志权限问题
+- Blockers:
+  - `bun run build` 目前仍不能视为通过；即使业务主路径大多可用，构建问题仍需要单独收口
+  - `README.md` 与 `docs/todo-2026-03-07.md` 中仍有少量旧结论（例如把 `settings` 视为说明页、把 `new-album` 视为占位页），后续若准备提交，建议再统一回写一次文档
+
 ## 2026-03-07（第十七轮后续修正：Settings 暗色对比与歌词层留白）
 
 - Done:

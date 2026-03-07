@@ -10,7 +10,7 @@ This project ports the original Vue 2 web experience to a modern SSR-capable Rea
 
 - Active rewrite of the YesPlayMusic web app, not a brand-new product
 - Meaningful parity is already in place for the app shell, player dock, home, search, playlist, album, artist, login, library, liked songs, explore, and queue flows
-- Some routes still use transition-state UI or placeholder shells, especially `new album`, `mv`, `settings`, and parts of the daily recommendation experience
+- Remaining gaps are mostly build/doc polish and a few non-core parity details; `mv` and cloud-disk flows are currently out of scope for this delivery
 - Remaining gaps, blockers, and next priorities are tracked in `docs/progress.md` and `docs/handoff-2026-03-07-latest.md`
 
 ## What Works Today
@@ -24,8 +24,8 @@ This project ports the original Vue 2 web experience to a modern SSR-capable Rea
 
 ## Still In Progress
 
-- `/new-album` is reserved and linked, but still uses a placeholder page body
-- `/mv/$id` and `/settings` are route stubs for future parity work
+- `/new-album` is functional, with remaining work mostly limited to finer visual parity decisions
+- `/lastfm/callback` is available as a lightweight callback route that stores the returned session in browser local storage
 - `/daily/songs` already loads real account-scoped data, but its page layout is still a transitional implementation rather than a full YesPlayMusic-style screen
 - Some secondary detail interactions and pixel-level parity are still being refined
 
@@ -69,6 +69,8 @@ VITE_REAL_IP=211.161.244.70
 ```
 
 If your local API service exposes Swagger docs, they are typically available at `http://localhost:3002/docs/`.
+
+If you want to use `/lastfm/callback`, also provide `LASTFM_API_KEY` and `LASTFM_API_SHARED_SECRET` on the server side.
 
 ## Quick Start
 
@@ -157,6 +159,7 @@ Routes that exist but are still partial or transitional:
 - `/new-album`
 - `/mv/$id`
 - `/settings`
+- `/lastfm/callback`
 
 Additional parity work is still in progress for these routes and for some secondary interaction details.
 

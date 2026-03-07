@@ -5,12 +5,25 @@ import RouteErrorState from '#/components/app/route-error-state'
 import RoutePlaceholder from '#/components/app/route-placeholder'
 import { hasAccountNeteaseSession, useAuthStore } from '#/features/auth/stores/auth-store'
 import { dailySongsQueryOptions } from '#/features/home/api/for-you-api'
-import { usePlayableTracks } from '#/lib/music/playability-client'
+import type { NeteaseTrack } from '#/features/music/api/types'
 import PlayTrackButton from '#/features/player/components/play-track-button'
+import { usePlayableTracks } from '#/lib/music/playability-client'
 
 export const Route = createFileRoute('/daily/songs')({
   component: DailySongsRoute,
 })
+
+function getTrackCoverUrl(track: NeteaseTrack) {
+  return track.al?.picUrl ?? track.album?.picUrl
+}
+
+function getTrackArtists(track: NeteaseTrack) {
+  return (
+    track.ar?.map((artist) => artist.name).join(' / ') ??
+    track.artists?.map((artist) => artist.name).join(' / ') ??
+    'Unknown artist'
+  )
+}
 
 function DailySongsRoute() {
   const authSnapshot = useAuthStore(
@@ -97,39 +110,52 @@ function DailySongsRoute() {
         }
       >
         {playableDailyTracks.length > 0 ? (
-          <div className="grid gap-3">
-            {playableDailyTracks.map((track, index) => (
-              <article
-                key={track.id}
-                className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--line)] px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="m-0 truncate font-medium text-[var(--sea-ink)]">
-                    {index + 1}. {track.name}
-                  </p>
-                  <p className="mt-1 truncate text-xs text-[var(--sea-ink-soft)]">
-                    {track.ar?.map((artist) => artist.name).join(' / ') ??
-                      track.artists?.map((artist) => artist.name).join(' / ') ??
-                      'Unknown artist'}
-                    {track.al?.name || track.album?.name
-                      ? ` · ${track.al?.name ?? track.album?.name}`
-                      : ''}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-[var(--sea-ink-soft)]">
-                    {track.playable === false ? track.reason : 'Daily Tracks'}
-                  </span>
-                  <PlayTrackButton
-                    track={track}
-                    queue={playableDailyTracks}
-                    source={{ label: '每日推荐', to: '/daily/songs' }}
-                    showPlayNext
-                    className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                </div>
-              </article>
-            ))}
+          <div className="mt-8 grid gap-3">
+            {playableDailyTracks.map((track, index) => {
+              const coverUrl = getTrackCoverUrl(track)
+
+              return (
+                <article key={track.id} className="library-track-row">
+                  <div className="library-track-row__cover-shell">
+                    {coverUrl ? (
+                      <img
+                        src={coverUrl}
+                        alt={track.name}
+                        className="library-track-row__cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="library-track-row__cover-placeholder">
+                        {track.name.slice(0, 1)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="library-track-row__title">
+                      {index + 1}. {track.name}
+                    </p>
+                    <p className="library-track-row__meta">
+                      {getTrackArtists(track)}
+                      {track.al?.name || track.album?.name
+                        ? ` · ${track.al?.name ?? track.album?.name}`
+                        : ''}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-[var(--sea-ink-soft)]">
+                      {track.playable === false ? track.reason : 'Daily Tracks'}
+                    </span>
+                    <PlayTrackButton
+                      track={track}
+                      queue={playableDailyTracks}
+                      source={{ label: '每日推荐', to: '/daily/songs' }}
+                      showPlayNext
+                      className="app-chip cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                  </div>
+                </article>
+              )
+            })}
           </div>
         ) : (
           <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] px-6 py-10 text-sm text-[var(--sea-ink-soft)]">

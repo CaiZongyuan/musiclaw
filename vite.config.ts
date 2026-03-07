@@ -1,4 +1,6 @@
 import { defineConfig } from 'vite'
+
+process.env.WRANGLER_LOG_PATH ??= '.wrangler/logs'
 import { devtools } from '@tanstack/devtools-vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { paraglideVitePlugin } from '@inlang/paraglide-js'

@@ -151,9 +151,9 @@
 
 ### 第一优先级
 
-1. `/new-album`
-2. `/mv/:id`
-3. `/artist/:id/mv`
+1. `bun run build`
+2. `/lastfm/callback`
+3. 文档同步与交付说明
 
 原因：
 
@@ -255,9 +255,10 @@
 
 ## 7. 当前已知 blocker
 
-### 7.1 仍未完成的主路径页
+### 7.1 当前范围调整
 
-最直接的 blocker 不是现有页面不可用，而是：
+用户已明确：本轮不继续做 `MV` 与云盘功能，因此当前 blocker 已从这些页面改为构建和文档收尾。
+
 
 - `Explore`
 - `New Album`

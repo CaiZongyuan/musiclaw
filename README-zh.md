@@ -10,7 +10,7 @@
 
 - 当前是 YesPlayMusic Web 端的持续重写，不是全新产品线
 - 应用壳体、底部播放器、首页、搜索、歌单、专辑、艺人、登录、个人库、我喜欢的音乐、发现页和队列页已经具备较完整的主路径能力
-- 目前仍有部分路由处于过渡态 UI 或占位壳体阶段，尤其是 `new album`、`mv`、`settings` 以及每日推荐详情页的完整页面样式
+- 当前剩余缺口主要集中在构建/文档收尾和少量非核心 parity 细节；本轮交付不再推进 `mv` 与云盘能力
 - 剩余差异、阻塞和下一步优先级统一记录在 `docs/progress.md` 与 `docs/handoff-2026-03-07-latest.md`
 
 ## 当前可用能力
@@ -24,9 +24,9 @@
 
 ## 仍在完善中
 
-- `/new-album` 已预留路由并可跳转，但页面主体仍是占位实现
-- `/mv/$id` 与 `/settings` 目前还是后续 parity 用的路由骨架
-- `/daily/songs` 已接入账号态真实数据，但页面布局仍属于过渡实现，尚未完全回到 YesPlayMusic 原版风格
+- `/daily/songs` 已接入账号态真实数据，当前仍保留少量过渡态页面结构
+- `/new-album` 已可用，后续只需决定是否继续追更细的原版视觉节奏
+- `/lastfm/callback` 已补上最小可用回调链路
 - 一些次级交互和像素级对齐仍在继续收口
 
 ## 技术栈
@@ -69,6 +69,8 @@ VITE_REAL_IP=211.161.244.70
 ```
 
 如果你的本地 API 服务启用了 Swagger，一般可以在 `http://localhost:3002/docs/` 查看接口文档。
+
+如果要使用 `/lastfm/callback`，还需要在服务端环境里提供 `LASTFM_API_KEY` 与 `LASTFM_API_SHARED_SECRET`。
 
 ## 快速开始
 
@@ -157,6 +159,7 @@ wrangler.jsonc                      # Cloudflare Workers 部署配置
 - `/new-album`
 - `/mv/$id`
 - `/settings`
+- `/lastfm/callback`
 
 这些路由以及部分次级交互细节仍在继续向原版收口。
 
