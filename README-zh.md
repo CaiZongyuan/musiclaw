@@ -9,8 +9,25 @@
 ## 当前状态
 
 - 当前是 YesPlayMusic Web 端的持续重写，不是全新产品线
-- 现阶段重点在应用壳体、首页、搜索、歌单、专辑、艺人、登录、个人库、每日推荐、发现页和队列页的 parity 收口
-- 剩余差异、阻塞和下一步计划统一记录在 `docs/progress.md` 与 `docs/navbar-player-home-parity.md`
+- 应用壳体、底部播放器、首页、搜索、歌单、专辑、艺人、登录、个人库、我喜欢的音乐、发现页和队列页已经具备较完整的主路径能力
+- 目前仍有部分路由处于过渡态 UI 或占位壳体阶段，尤其是 `new album`、`mv`、`settings` 以及每日推荐详情页的完整页面样式
+- 剩余差异、阻塞和下一步优先级统一记录在 `docs/progress.md` 与 `docs/handoff-2026-03-07-latest.md`
+
+## 当前可用能力
+
+- 顶部导航、响应式应用壳体、底部播放器、播放队列，以及从播放器来源回跳
+- 首页推荐入口，包括 `Daily Tracks` 与 `Personal FM`
+- 搜索页及其查询词、类型、分页等路由状态恢复
+- 歌单、专辑、艺人、个人库、我喜欢的音乐，以及发现页分类浏览
+- 从搜索、发现页、歌单类列表直接播放，并保留全局队列来源语义
+- 用户名模式与账号模式两套网易云登录入口
+
+## 仍在完善中
+
+- `/new-album` 已预留路由并可跳转，但页面主体仍是占位实现
+- `/mv/$id` 与 `/settings` 目前还是后续 parity 用的路由骨架
+- `/daily/songs` 已接入账号态真实数据，但页面布局仍属于过渡实现，尚未完全回到 YesPlayMusic 原版风格
+- 一些次级交互和像素级对齐仍在继续收口
 
 ## 技术栈
 
@@ -86,6 +103,8 @@ bun run preview
 bun run deploy
 ```
 
+启动后可访问 `http://localhost:3000`。
+
 ## 常用命令
 
 ```bash
@@ -120,21 +139,32 @@ wrangler.jsonc                      # Cloudflare Workers 部署配置
 
 ## 路由覆盖
 
-当前已经覆盖一批关键的 YesPlayMusic Web 路由：
+当前已经具备较完整主路径能力的路由：
 
 - `/` 首页
 - `/search` 搜索
 - `/playlist/$id` 歌单详情
 - `/album/$id` 专辑详情
 - `/artist/$id` 艺人详情
-- `/daily/songs` 每日推荐
-- `/new-album` 新专辑
 - `/explore` 发现
 - `/next` 播放队列
 - `/library` 与 `/library/liked-songs` 个人库
 - `/login`、`/login/account`、`/login/username` 登录流
 
-部分次级页面与交互细节仍在继续向原版收口。
+已存在但仍处于过渡态或占位态的路由：
+
+- `/daily/songs`
+- `/new-album`
+- `/mv/$id`
+- `/settings`
+
+这些路由以及部分次级交互细节仍在继续向原版收口。
+
+## 登录模式
+
+- `用户名模式` 适合轻量浏览和身份识别场景
+- `账号模式` 才能解锁喜欢状态、每日推荐、私人 FM 以及更完整的音源获取能力
+- 某些播放与推荐能力会刻意依赖浏览器本地保存的网易云账号态
 
 ## 协作文档
 
@@ -152,6 +182,7 @@ wrangler.jsonc                      # Cloudflare Workers 部署配置
 - 本仓库统一使用 `bun` 进行依赖管理和脚本执行
 - `src/paraglide/` 是生成代码，不要手动修改
 - 播放能力会受到浏览器本地网易云账号态影响，因此部分音源请求会故意放在客户端执行
+- `docs/handoff-2026-03-07-latest.md` 是当前迁移状态最快的交接入口
 
 ## 相关链接
 

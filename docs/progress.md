@@ -1,5 +1,19 @@
 # Progress
 
+## 2026-03-07（第十五轮文档校准：中英文 README 同步）
+
+- Done:
+  - 已同步更新 `README.md` 与 `README-zh.md`，把项目定位明确为 YesPlayMusic Web 端的 parity-focused 重写，而不是全新产品
+  - README 现已区分“当前已具备主路径能力”的路由与“仍处于过渡态 / 占位态”的路由，避免把 `/new-album`、`/mv/:id`、`/settings` 等页面描述成已完整实现
+  - README 补充了当前可用能力、仍在完善中的部分，以及用户名模式 / 账号模式的能力边界
+  - README 现已补充 `docs/handoff-2026-03-07-latest.md` 作为最新交接入口，方便后续开发者快速接手
+- In progress:
+  - 等待后续页面继续推进时，按功能收口节奏保持 README 与实际路由状态一致
+- Next:
+  - 后续每完成一个主路径页面收口时，同步回写 README 的“Route Coverage / Still In Progress”部分
+- Blockers:
+  - 无；本次为文档准确性修正，不涉及运行时逻辑变更
+
 ## 2026-03-07（第十五轮后续修正：播放器连续自动下一首）
 
 - Done:
