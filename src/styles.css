@@ -450,6 +450,12 @@ a {
   background: rgba(79, 184, 178, 0.16);
 }
 
+.player-dock__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
 .player-dock__button--primary {
   width: 3.25rem;
   height: 3.25rem;
@@ -457,7 +463,18 @@ a {
   background: rgba(79, 184, 178, 0.22);
 }
 
+.player-dock__button--active {
+  border-color: rgba(79, 184, 178, 0.42);
+  background: rgba(79, 184, 178, 0.22);
+  color: var(--lagoon-deep);
+}
+
 .player-dock__slider {
   width: 100%;
   accent-color: #4fb8b2;
+}
+
+.player-dock__slider:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }

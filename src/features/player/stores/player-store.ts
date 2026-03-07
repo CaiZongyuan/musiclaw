@@ -27,11 +27,13 @@ export interface PlayerStoreSnapshot {
 }
 
 interface PlayerStoreActions {
+  cycleRepeatMode: () => void
   loadQueueAndPlay: (queue: PlayerTrack[], currentTrackId?: number | null) => void
   pause: () => void
   play: () => void
   playTrack: (trackId: number) => void
   resetPlayer: () => void
+  seekTo: (progressSeconds: number) => void
   setDurationSeconds: (durationSeconds: number) => void
   setProgressSeconds: (progressSeconds: number) => void
   setQueue: (queue: PlayerTrack[], currentTrackId?: number | null) => void
@@ -41,6 +43,7 @@ interface PlayerStoreActions {
   setVolume: (volume: number) => void
   skipToNext: () => void
   skipToPrevious: () => void
+  toggleShuffleEnabled: () => void
   togglePlayback: () => void
 }
 
@@ -61,6 +64,38 @@ function clampVolume(volume: number) {
   return Math.min(1, Math.max(0, volume))
 }
 
+function clampDuration(durationSeconds: number) {
+  if (!Number.isFinite(durationSeconds) || durationSeconds < 0) {
+    return 0
+  }
+
+  return durationSeconds
+}
+
+function clampProgress(progressSeconds: number, durationSeconds: number) {
+  if (!Number.isFinite(progressSeconds) || progressSeconds < 0) {
+    return 0
+  }
+
+  if (durationSeconds <= 0) {
+    return progressSeconds
+  }
+
+  return Math.min(progressSeconds, durationSeconds)
+}
+
+function getNextRepeatMode(repeatMode: RepeatMode): RepeatMode {
+  if (repeatMode === 'off') {
+    return 'all'
+  }
+
+  if (repeatMode === 'all') {
+    return 'one'
+  }
+
+  return 'off'
+}
+
 function getCurrentTrackIndex(
   queue: PlayerTrack[],
   currentTrackId: number | null,
@@ -76,15 +111,34 @@ function resolveDurationSeconds(
   queue: PlayerTrack[],
   currentTrackId: number | null,
 ) {
-  return (
+  return clampDuration(
     (queue.find((track) => track.id === currentTrackId)?.durationMs ?? 0) / 1000
   )
+}
+
+function getRandomTrackId(
+  queue: PlayerTrack[],
+  currentTrackId: number | null,
+  fallbackTrackId: number,
+) {
+  const availableTrackIds = queue
+    .map((track) => track.id)
+    .filter((trackId) => trackId !== currentTrackId)
+
+  if (availableTrackIds.length === 0) {
+    return fallbackTrackId
+  }
+
+  const randomIndex = Math.floor(Math.random() * availableTrackIds.length)
+  return availableTrackIds[randomIndex] ?? fallbackTrackId
 }
 
 export const usePlayerStore = create<PlayerStoreState>()(
   persist(
     (set) => ({
       ...defaultPlayerSnapshot,
+      cycleRepeatMode: () =>
+        set((state) => ({ repeatMode: getNextRepeatMode(state.repeatMode) })),
       loadQueueAndPlay: (queue, currentTrackId = queue[0]?.id ?? null) =>
         set({
           queue,
@@ -103,14 +157,32 @@ export const usePlayerStore = create<PlayerStoreState>()(
           durationSeconds: resolveDurationSeconds(state.queue, trackId),
         })),
       resetPlayer: () => set(defaultPlayerSnapshot),
-      setDurationSeconds: (durationSeconds) => set({ durationSeconds }),
-      setProgressSeconds: (progressSeconds) => set({ progressSeconds }),
+      seekTo: (progressSeconds) =>
+        set((state) => ({
+          progressSeconds: clampProgress(progressSeconds, state.durationSeconds),
+        })),
+      setDurationSeconds: (durationSeconds) =>
+        set((state) => {
+          const nextDurationSeconds = clampDuration(durationSeconds)
+
+          return {
+            durationSeconds: nextDurationSeconds,
+            progressSeconds: clampProgress(
+              state.progressSeconds,
+              nextDurationSeconds,
+            ),
+          }
+        }),
+      setProgressSeconds: (progressSeconds) =>
+        set((state) => ({
+          progressSeconds: clampProgress(progressSeconds, state.durationSeconds),
+        })),
       setQueue: (queue, currentTrackId = queue[0]?.id ?? null) =>
         set({
           queue,
           currentTrackId,
           progressSeconds: 0,
-          durationSeconds: 0,
+          durationSeconds: resolveDurationSeconds(queue, currentTrackId),
         }),
       setRepeatMode: (repeatMode) => set({ repeatMode }),
       setShuffleEnabled: (shuffleEnabled) => set({ shuffleEnabled }),
@@ -136,24 +208,37 @@ export const usePlayerStore = create<PlayerStoreState>()(
           if (state.repeatMode === 'one' && state.currentTrackId !== null) {
             return {
               progressSeconds: 0,
+              durationSeconds: resolveDurationSeconds(
+                state.queue,
+                state.currentTrackId,
+              ),
               isPlaying: true,
             }
           }
 
           if (state.shuffleEnabled && state.queue.length > 1) {
-            const randomIndex = Math.floor(Math.random() * state.queue.length)
+            const nextTrackId = getRandomTrackId(
+              state.queue,
+              state.currentTrackId,
+              fallbackTrack.id,
+            )
+
             return {
-              currentTrackId: state.queue[randomIndex]?.id ?? fallbackTrack.id,
+              currentTrackId: nextTrackId,
               progressSeconds: 0,
+              durationSeconds: resolveDurationSeconds(state.queue, nextTrackId),
               isPlaying: true,
             }
           }
 
           const nextIndex = currentIndex + 1
+          const nextTrackId = state.queue[nextIndex]?.id ?? fallbackTrack.id
+
           if (nextIndex < state.queue.length) {
             return {
-              currentTrackId: state.queue[nextIndex]?.id ?? fallbackTrack.id,
+              currentTrackId: nextTrackId,
               progressSeconds: 0,
+              durationSeconds: resolveDurationSeconds(state.queue, nextTrackId),
               isPlaying: true,
             }
           }
@@ -162,6 +247,10 @@ export const usePlayerStore = create<PlayerStoreState>()(
             return {
               currentTrackId: fallbackTrack.id,
               progressSeconds: 0,
+              durationSeconds: resolveDurationSeconds(
+                state.queue,
+                fallbackTrack.id,
+              ),
               isPlaying: true,
             }
           }
@@ -186,24 +275,40 @@ export const usePlayerStore = create<PlayerStoreState>()(
           if (state.progressSeconds > 3) {
             return {
               progressSeconds: 0,
+              durationSeconds: resolveDurationSeconds(
+                state.queue,
+                state.currentTrackId,
+              ),
             }
           }
 
           if (state.shuffleEnabled && state.queue.length > 1) {
-            const randomIndex = Math.floor(Math.random() * state.queue.length)
+            const nextTrackId = getRandomTrackId(
+              state.queue,
+              state.currentTrackId,
+              fallbackTrack.id,
+            )
+
             return {
-              currentTrackId: state.queue[randomIndex]?.id ?? fallbackTrack.id,
+              currentTrackId: nextTrackId,
               progressSeconds: 0,
+              durationSeconds: resolveDurationSeconds(state.queue, nextTrackId),
               isPlaying: true,
             }
           }
 
           const previousIndex = currentIndex - 1
+          const previousTrackId =
+            state.queue[previousIndex]?.id ?? fallbackTrack.id
+
           if (previousIndex >= 0) {
             return {
-              currentTrackId:
-                state.queue[previousIndex]?.id ?? fallbackTrack.id,
+              currentTrackId: previousTrackId,
               progressSeconds: 0,
+              durationSeconds: resolveDurationSeconds(
+                state.queue,
+                previousTrackId,
+              ),
               isPlaying: true,
             }
           }
@@ -211,9 +316,12 @@ export const usePlayerStore = create<PlayerStoreState>()(
           return {
             currentTrackId: fallbackTrack.id,
             progressSeconds: 0,
+            durationSeconds: resolveDurationSeconds(state.queue, fallbackTrack.id),
             isPlaying: true,
           }
         }),
+      toggleShuffleEnabled: () =>
+        set((state) => ({ shuffleEnabled: !state.shuffleEnabled })),
       togglePlayback: () => set((state) => ({ isPlaying: !state.isPlaying })),
     }),
     {

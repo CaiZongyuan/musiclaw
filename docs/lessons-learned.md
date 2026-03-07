@@ -166,3 +166,14 @@
   - 创建 `Howl` 的 effect 只依赖 `track.id` 和 `sourceUrl`；播放/暂停、音量、进度同步分别用独立 effect 处理
 - Prevention:
   - 后续扩展 seek、倍速、淡入淡出等能力时，继续保持“实例生命周期”和“运行时控制”分离
+
+## 播放器进度与时长应在 store 层统一钳制
+
+- Context:
+  - 底部播放器 UI、`Howler` 引擎和持久化状态都会读写 `progressSeconds`、`durationSeconds`
+- Problem:
+  - 如果让组件直接随意写进度，拖动进度条或切歌后容易出现进度超过时长、切歌后仍残留上一首时长的问题
+- Resolution:
+  - 在 `player-store` 中提供 `seekTo`、切歌时重算 `durationSeconds`，并统一对进度和时长做 clamp
+- Prevention:
+  - 后续新增歌词高亮、已播放缓存、逐字歌词时，继续只通过 store action 改写播放进度，不在组件里分散处理边界

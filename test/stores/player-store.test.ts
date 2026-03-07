@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
+import type { PlayerTrack } from '../../src/features/player/stores/player-store'
 import {
   defaultPlayerSnapshot,
   usePlayerStore,
-  type PlayerTrack,
 } from '../../src/features/player/stores/player-store'
 
 const queue: PlayerTrack[] = [
@@ -13,6 +13,7 @@ const queue: PlayerTrack[] = [
 
 afterEach(() => {
   usePlayerStore.setState(defaultPlayerSnapshot)
+  vi.restoreAllMocks()
 })
 
 describe('player store', () => {
@@ -39,12 +40,13 @@ describe('player store', () => {
     )
   })
 
-  test('skipToNext advances to the next track', () => {
+  test('skipToNext advances to the next track and updates duration', () => {
     usePlayerStore.setState({
       ...defaultPlayerSnapshot,
       queue,
       currentTrackId: 1,
       isPlaying: true,
+      durationSeconds: 1,
     })
 
     usePlayerStore.getState().skipToNext()
@@ -52,6 +54,7 @@ describe('player store', () => {
     expect(usePlayerStore.getState().currentTrackId).toBe(2)
     expect(usePlayerStore.getState().isPlaying).toBe(true)
     expect(usePlayerStore.getState().progressSeconds).toBe(0)
+    expect(usePlayerStore.getState().durationSeconds).toBe(2)
   })
 
   test('skipToNext loops when repeatMode is all', () => {
@@ -67,6 +70,7 @@ describe('player store', () => {
 
     expect(usePlayerStore.getState().currentTrackId).toBe(1)
     expect(usePlayerStore.getState().isPlaying).toBe(true)
+    expect(usePlayerStore.getState().durationSeconds).toBe(1)
   })
 
   test('skipToPrevious rewinds current track when progress is over three seconds', () => {
@@ -75,6 +79,7 @@ describe('player store', () => {
       queue,
       currentTrackId: 2,
       progressSeconds: 12,
+      durationSeconds: 2,
       isPlaying: true,
     })
 
@@ -82,6 +87,7 @@ describe('player store', () => {
 
     expect(usePlayerStore.getState().currentTrackId).toBe(2)
     expect(usePlayerStore.getState().progressSeconds).toBe(0)
+    expect(usePlayerStore.getState().durationSeconds).toBe(2)
   })
 
   test('playTrack updates duration in seconds', () => {
@@ -95,5 +101,46 @@ describe('player store', () => {
     expect(usePlayerStore.getState().currentTrackId).toBe(3)
     expect(usePlayerStore.getState().durationSeconds).toBe(3)
     expect(usePlayerStore.getState().isPlaying).toBe(true)
+  })
+
+  test('seekTo clamps progress within track duration', () => {
+    usePlayerStore.setState({
+      ...defaultPlayerSnapshot,
+      queue,
+      currentTrackId: 2,
+      durationSeconds: 2,
+    })
+
+    usePlayerStore.getState().seekTo(3.7)
+
+    expect(usePlayerStore.getState().progressSeconds).toBe(2)
+  })
+
+  test('cycleRepeatMode rotates off, all, one', () => {
+    usePlayerStore.getState().cycleRepeatMode()
+    expect(usePlayerStore.getState().repeatMode).toBe('all')
+
+    usePlayerStore.getState().cycleRepeatMode()
+    expect(usePlayerStore.getState().repeatMode).toBe('one')
+
+    usePlayerStore.getState().cycleRepeatMode()
+    expect(usePlayerStore.getState().repeatMode).toBe('off')
+  })
+
+  test('skipToNext in shuffle mode chooses another track when possible', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+
+    usePlayerStore.setState({
+      ...defaultPlayerSnapshot,
+      queue,
+      currentTrackId: 2,
+      shuffleEnabled: true,
+      isPlaying: true,
+    })
+
+    usePlayerStore.getState().skipToNext()
+
+    expect(usePlayerStore.getState().currentTrackId).toBe(1)
+    expect(usePlayerStore.getState().durationSeconds).toBe(1)
   })
 })
